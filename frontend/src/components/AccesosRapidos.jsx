@@ -4,7 +4,7 @@ import { Link } from "react-router-dom"
 function AccesosRapidos() {
   const accesos = [
     { title: "Solicitar Turno", img: "/icons/turnos.png", to: "/turnos" },
-    { title: "Portal Pacientes", img: "/icons/estudios.png", to: `http://localhost:5173/portal/` },
+    { title: "Portal Pacientes", img: "/icons/estudios.png", to: `https://bulonxpress.online/login` },
     { title: "Novedades", img: "/icons/novedades.png", to: "/novedades" },
   ]
 

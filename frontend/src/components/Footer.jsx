@@ -75,7 +75,7 @@ export default function Footer() {
             plataforma digital.
           </p>
                     <Link
-            to="http://frontend:5173/portal"
+            to="https://bulonxpress.online/portal"
             className="inline-block bg-white text-[#0A2342] font-semibold px-6 py-2 rounded-full shadow hover:bg-gray-100 transition"
           >
             Ingresar
