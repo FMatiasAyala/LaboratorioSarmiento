@@ -1,0 +1,12 @@
+# Ignore node_modules everywhere
+**/node_modules/
+
+# Ignore dist and build everywhere
+**/dist/
+**/build/
+
+# Logs
+**/*.log
+
+# Env files
+**/.env*
