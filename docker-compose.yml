@@ -1,0 +1,39 @@
+version: "3.9"
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: labo-backend
+    ports:
+      - "5000:5000"
+    environment:
+      NODE_ENV: "production"
+      PORT: "5000"
+
+      # 👇 Base de datos EXTERNA
+      DB_HOST: "172.20.37.7"        # <-- Tu IP real
+      DB_USER: "labo"
+      DB_PASSWORD: "Labo1234"
+      DB_NAME: "Laboratorio"
+
+      LAB_API: "http://192.168.20.249:3000"
+      LAB_KEY: "lksdjfgoiusdfg87dfgikdfjg"
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: labo-frontend
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+    command: ["npm", "run", "dev", "--", "--host"]
+    depends_on:
+      - backend

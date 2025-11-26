@@ -1,0 +1,156 @@
+import React, { useState } from "react"
+import { NavLink, Link, useLocation } from "react-router-dom"
+
+const base =
+  "inline-flex items-center font-medium transition px-2 py-1.5 rounded-md"
+const active = "text-[#A63A3A] border-b-2 border-[#A63A3A]"
+const inactive =
+  "text-[#333] hover:text-[#A63A3A] hover:border-b-2 hover:border-[#A63A3A]"
+
+export default function Navbar() {
+  const [open, setOpen] = useState(false)
+  const location = useLocation()
+
+  const handleInicioClick = () => {
+    if (location.pathname === "/inicio") {
+      window.scrollTo({ top: 0, behavior: "smooth" })
+    }
+  }
+
+  const links = [
+    { to: "/inicio", label: "Inicio" },
+    { to: "/servicios", label: "Servicios" },
+    { to: "/nosotros", label: "Laboratorio" },
+    { to: "/novedades", label: "Novedades" },
+    { to: "/pacientes", label: "Pacientes" },
+  ]
+
+  // Submenús
+  const subMenus = {
+    Servicios: [
+      { to: "/servicios/analisis-clinicos", label: "Análisis Clínicos" },
+      { to: "/servicios/diagnostico-patologias", label: "Diagnostico de Patologias " },
+    ],
+    Laboratorio: [
+      { to: "/nosotros/equipo", label: "Nuestro Equipo" },
+      { to: "/nosotros/instalaciones", label: "Instalaciones" },
+      { to: "/nosotros/contacto", label: "Contacto" },
+    ],
+    Pacientes: [
+      { to: "/pacientes/portal", label: "Portal de Resultados" },
+      { to: "/pacientes/preparaciones", label: "Preparaciones" },
+      { to: "/pacientes/preguntas", label: "Preguntas Frecuentes" },
+    ],
+  }
+
+  return (
+    <header className="sticky top-0 z-50 w-full bg-white shadow-md">
+      <div className="container mx-auto flex h-16 items-center justify-between px-4">
+        <Link to="/" className="text-white font-bold tracking-wide">
+          <img src="/logos/logo2.jpg" className="w-30 h-10 " />
+        </Link>
+
+        {/* Desktop */}
+        <nav className="hidden md:flex items-center gap-4 relative">
+          {links.map(({ to, label }) => {
+            const submenu = subMenus[label]
+
+            // Si tiene submenú
+            if (submenu) {
+              return (
+                <div className="relative group">
+                  <NavLink
+                    to={to}
+                    className={({ isActive }) =>
+                      [base, isActive ? active : inactive].join(" ")
+                    }
+                  >
+                    {label}
+                    {submenu && <span className="ml-1 text-xs">▾</span>}
+                  </NavLink>
+
+                  {submenu && (
+                    <div
+                      className="invisible absolute left-0 top-full z-40 flex min-w-[200px] flex-col rounded-md bg-white/95 text-[#333] shadow-lg opacity-0 transition-all duration-150 group-hover:visible group-hover:opacity-100"
+                      // este padding superior de 0.5rem crea la "zona puente" del hover
+                      style={{ paddingTop: "0.5rem" }}
+                    >
+                      {submenu.map(({ to, label }) => (
+                        <NavLink
+                          key={to}
+                          to={to}
+                          className={({ isActive }) =>
+                            [
+                              "px-4 py-2 text-sm font-medium transition whitespace-nowrap",
+                              isActive
+                                ? "bg-[#A63A3A] text-white"
+                                : "hover:bg-[#f1f1f1]",
+                            ].join(" ")
+                          }
+                        >
+                          {label}
+                        </NavLink>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+              )
+            }
+
+            // Sin submenú
+            return (
+              <NavLink
+                key={to}
+                to={to}
+                onClick={label === "Inicio" ? handleInicioClick : undefined}
+                className={({ isActive }) =>
+                  [base, isActive ? active : inactive].join(" ")
+                }
+              >
+                {label}
+              </NavLink>
+            )
+          })}
+        </nav>
+
+        {/* Mobile toggle */}
+        <button
+          className="md:hidden text-[#a63a3a] text-2xl"
+          onClick={() => setOpen((v) => !v)}
+          aria-label="Abrir menú"
+        >
+          ☰
+        </button>
+      </div>
+
+      {/* Mobile */}
+      {open && (
+        <div className="md:hidden bg-[#a63a3a] border-t border-white/10">
+          <nav className="container mx-auto flex flex-col px-4 py-3 gap-2">
+            {links.map(({ to, label }) => (
+              <NavLink
+                key={to}
+                to={to}
+                onClick={() => {
+                  if (label === "Inicio" && location.pathname === "/inicio") {
+                    window.scrollTo({ top: 0, behavior: "smooth" })
+                  }
+                  setOpen(false)
+                }}
+                className={({ isActive }) =>
+                  [
+                    "px-3 py-2 rounded-md",
+                    isActive ? "bg-white/10 text-[#bfbfbf]" : "text-white",
+                  ].join(" ")
+                }
+              >
+                {label}
+              </NavLink>
+            ))}
+          </nav>
+        </div>
+      )}
+    </header>
+  )
+}
