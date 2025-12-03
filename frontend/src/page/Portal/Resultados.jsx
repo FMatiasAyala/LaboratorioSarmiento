@@ -20,30 +20,43 @@ export default function Resultados() {
   // CARGA DE INGRESOS
   // ========================
   useEffect(() => {
+    // 1) Si no tengo historia, error y corto
     if (!usuario?.nro_historia) {
       setError("No se encontró el número de historia del paciente.");
       setLoading(false);
       return;
     }
 
+    // 2) Si todavía no tengo token, no hago nada (ya se va a ejecutar cuando token cambie)
+    if (!token) {
+      return;
+    }
+
     const fetchResultados = async () => {
       try {
         setLoading(true);
+        setError("");
+        console.log("Consultando resultados para historia:", usuario.nro_historia);
+        console.log("Usando token:", token);
         const resp = await fetch(
-          `${API_URL}/api/resultados/${usuario.nro_historia}`,
+          `https://api.bulonxpress.online/api/resultados/${usuario.nro_historia}`,
           {
             method: "GET",
             headers: {
-              "Authorization": `Bearer ${token}`
-            }
+              Authorization: `Bearer ${token}`,
+            },
           }
         );
 
         const data = await resp.json();
-        if (!resp.ok) throw new Error(data.error || "Error al consultar resultados");
 
-        if (!data.resultados?.ok)
+        if (!resp.ok) {
+          throw new Error(data.error || "Error al consultar resultados");
+        }
+
+        if (!data.resultados?.ok) {
           throw new Error("El laboratorio no devolvió resultados válidos");
+        }
 
         setIngresos(data.resultados.ingresos || []);
       } catch (err) {
@@ -54,7 +67,8 @@ export default function Resultados() {
     };
 
     fetchResultados();
-  }, [usuario?.nro_historia]);
+  }, [usuario?.nro_historia, token]); // <-- agregamos token acá
+
 
   // ========================
   // CARGAR DETALLE DE UN INGRESO

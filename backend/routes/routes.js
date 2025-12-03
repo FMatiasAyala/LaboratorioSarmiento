@@ -6,8 +6,10 @@ const pacientesController = require("../controllers/pacientesController");
 const authMiddleware = require("../middlewares/authMiddleware")
 
 router.post("/login", authController.login);
+router.post("/verificar-dni", authController.verificarDni);
+router.post("/crear-password", authController.crearPassword);
 router.get("/resultados/:codigo",authMiddleware, estudiosController.resultados);
-router.get("/detalles/:ingreso", authMiddleware, estudiosController.detalles);
+router.get("/detalles/:ingreso",authMiddleware, estudiosController.detalles);
 router.get("/pdf/:ingreso", estudiosController.pdf);
 router.get("/pdf-url/:ingreso",authMiddleware, estudiosController.pdfUrl);
 router.get("/pacientes/:dni", pacientesController.pacientes);
