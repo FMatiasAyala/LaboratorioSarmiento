@@ -34,7 +34,7 @@ router.put(
   "/usuarios/:id",
   authMiddleware,
   requireAdmin,
-  usuarioController.actualizarUsuario
+  usuarioController.editarUsuario
 );
 router.delete(
   "/usuarios/:id",
