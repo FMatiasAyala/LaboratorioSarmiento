@@ -4,7 +4,6 @@ const LAB_KEY = process.env.LAB_KEY;
 exports.pacientes = async (req, res) => {
   try {
     const dni = req.params.dni;
-    console.log("HEADERS REALES QUE LLEGAN:", req.headers);
 
     // Llamada interna al laboratorio (WireGuard)
     const response = await fetch(

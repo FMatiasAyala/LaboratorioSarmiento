@@ -73,7 +73,6 @@ exports.pdf = async (req, res) => {
 exports.resultados = async (req, res) => {
   try {
     const codigo = req.params.codigo;
-    console.log("HEADERS REALES QUE LLEGAN:", req.headers);
 
     // Llamada interna al laboratorio (WireGuard)
     const response = await fetch(
@@ -94,7 +93,6 @@ exports.resultados = async (req, res) => {
 exports.detalles = async (req, res) => {
   try {
     const ingreso = req.params.ingreso;
-    console.log("HEADERS REALES QUE LLEGAN:", req.headers);
     // Llamada interna al laboratorio (WireGuard)
     const response = await fetch(
       `${LAB_API}/api/estudios/detalles/${ingreso}?key=${LAB_KEY}`

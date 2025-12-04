@@ -39,6 +39,7 @@ exports.crearUsuario = async (req, res) => {
 // LISTAR USUARIOS
 // ================================
 exports.listarUsuarios = async (req, res) => {
+  console.log("requested by user:", req.user);
   try {
     const [rows] = await pool.query(
       "SELECT id, dni, nombre, apellido, fecha_nac, nro_historia, rol FROM usuarios"

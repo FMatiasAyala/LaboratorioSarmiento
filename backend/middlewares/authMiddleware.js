@@ -2,7 +2,6 @@ const jwt = require("jsonwebtoken");
 
 module.exports = function (req, res, next) {
   const auth = req.headers.authorization;
-  console.log("authMiddleware: Authorization header:", auth);
 
   if (!auth || !auth.startsWith("Bearer ")) {
     return res.status(401).json({ ok: false, error: "Token requerido" });
