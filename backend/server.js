@@ -13,20 +13,23 @@ const allowedOrigins = [
 app.use(
   cors({
     origin: function (origin, callback) {
-      // Permitir herramientas como Postman (origin vacío)
+      // Permitir Postman, curl, etc (sin origin)
       if (!origin) return callback(null, true);
 
       if (allowedOrigins.includes(origin)) {
         return callback(null, true);
-      } else {
-        return callback(new Error("Origen no permitido por CORS: " + origin));
       }
+
+      // ❗ No tiramos error porque rompe el preflight
+      console.warn("CORS bloqueado para origen:", origin);
+      return callback(null, false); 
     },
     methods: ["GET", "POST", "PUT", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,
   })
 );
+
 
 app.use(express.json());
 app.use("/api", routerLab);
