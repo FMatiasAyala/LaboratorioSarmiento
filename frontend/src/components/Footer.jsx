@@ -4,7 +4,7 @@ import { FaFacebook, FaInstagram, FaWhatsapp } from "react-icons/fa"
 import { FiMail } from "react-icons/fi"
 import { FaMapLocation } from "react-icons/fa6"
 
-
+const PORTAL_URL = import.meta.env.VITE_PORTAL_URL;
 export default function Footer() {
   return (
     <footer className="bg-[#A63A3A] text-gray-100 pt-14 pb-8 mt-10">
@@ -75,7 +75,7 @@ export default function Footer() {
             plataforma digital.
           </p>
                     <Link
-            to="https://bulonxpress.online/portal"
+            to= {PORTAL_URL}
             className="inline-block bg-white text-[#0A2342] font-semibold px-6 py-2 rounded-full shadow hover:bg-gray-100 transition"
           >
             Ingresar

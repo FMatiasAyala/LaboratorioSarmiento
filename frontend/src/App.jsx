@@ -7,6 +7,8 @@ import NotFound from "./page/NotFound";
 import Login from "./auth/Login";
 import Resultados from "./page/Portal/Resultados";
 import PreguntasFrecuentes from "./page/FAQ";
+import UserAdminLayout from "./layouts/UserAdminLayout";
+import UsuariosList from "./page/Portal/UsuariosList";
 
 function App() {
   const usuario = JSON.parse(localStorage.getItem("usuario") || "null");
@@ -14,6 +16,7 @@ function App() {
   return (
     <Suspense>
       <Routes>
+
         {/* --- WEB PÚBLICA --- */}
         <Route element={<AppLayout />}>
           <Route index element={<Home />} />
@@ -22,18 +25,32 @@ function App() {
           <Route path="*" element={<NotFound />} />
         </Route>
 
-        {/* --- PORTAL PACIENTE LOGIN --- */}
+        {/* --- LOGIN DEL PORTAL --- */}
         <Route path="/portal/login" element={<Login />} />
 
-        {/* --- PORTAL PACIENTE PROTEGIDO --- */}
+        {/* --- PORTAL PROTEGIDO (PACIENTE O ADMIN) --- */}
         <Route
           path="/portal/*"
-          element={usuario ? <PortalLayout /> : <Navigate to="/portal/login" />}
+          element={
+            usuario
+              ? usuario.rol === "admin"
+                ? <UserAdminLayout />   // ADMIN
+                : <PortalLayout />      // PACIENTE
+              : <Navigate to="/portal/login" />
+          }
         >
-          <Route index element={<Resultados />} />
+          {/* Paciente → resultados */}
+          {usuario?.rol !== "admin" && (
+            <Route index element={<Resultados />} />
+          )}
+
+          {/* Admin → lista de usuarios */}
+          {usuario?.rol === "admin" && (
+            <Route index element={<UsuariosList />} />
+          )}
         </Route>
 
-        {/* --- 404 --- */}
+        {/* --- 404 FINAL --- */}
         <Route path="*" element={<NotFound />} />
       </Routes>
     </Suspense>
@@ -41,3 +58,4 @@ function App() {
 }
 
 export default App;
+

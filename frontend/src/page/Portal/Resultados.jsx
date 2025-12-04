@@ -20,14 +20,12 @@ export default function Resultados() {
   // CARGA DE INGRESOS
   // ========================
   useEffect(() => {
-    // 1) Si no tengo historia, error y corto
     if (!usuario?.nro_historia) {
       setError("No se encontró el número de historia del paciente.");
       setLoading(false);
       return;
     }
 
-    // 2) Si todavía no tengo token, no hago nada (ya se va a ejecutar cuando token cambie)
     if (!token) {
       return;
     }
@@ -39,7 +37,7 @@ export default function Resultados() {
         console.log("Consultando resultados para historia:", usuario.nro_historia);
         console.log("Usando token:", token);
         const resp = await fetch(
-          `https://api.bulonxpress.online/api/resultados/${usuario.nro_historia}`,
+          `${API_URL}/api/resultados/${usuario.nro_historia}`,
           {
             method: "GET",
             headers: {
@@ -67,7 +65,7 @@ export default function Resultados() {
     };
 
     fetchResultados();
-  }, [usuario?.nro_historia, token]); // <-- agregamos token acá
+  }, [usuario?.nro_historia, token]); 
 
 
   // ========================

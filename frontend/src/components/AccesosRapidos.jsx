@@ -1,10 +1,10 @@
 import React from "react"
 import { Link } from "react-router-dom"
-
+const PORTAL_URL = import.meta.env.VITE_PORTAL_URL;
 function AccesosRapidos() {
   const accesos = [
     { title: "Solicitar Turno", img: "/icons/turnos.png", to: "/turnos" },
-    { title: "Portal Pacientes", img: "/icons/estudios.png", to: `https://bulonxpress.online/login` },
+    { title: "Portal Pacientes", img: "/icons/estudios.png", to: PORTAL_URL },
     { title: "Novedades", img: "/icons/novedades.png", to: "/novedades" },
   ]
 
