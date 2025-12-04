@@ -3,13 +3,31 @@ const cors = require("cors");
 const routerLab = require("./routes/routes");
 require("dotenv").config();
 const app = express();
+const allowedOrigins = [
+  "http://localhost:5173", // Front local
+  "https://bulonxpress.online", // Front producción
+  "https://www.bulonxpress.online",
+  "https://portal.bulonxpress.online", // si usás subdominio
+];
+
 app.use(
   cors({
-    origin: "*",
+    origin: function (origin, callback) {
+      // Permitir herramientas como Postman (origin vacío)
+      if (!origin) return callback(null, true);
+
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      } else {
+        return callback(new Error("Origen no permitido por CORS: " + origin));
+      }
+    },
     methods: ["GET", "POST", "PUT", "DELETE"],
-    credentials: true, // enable set cookies
+    allowedHeaders: ["Content-Type", "Authorization"],
+    credentials: true,
   })
-); // permite llamadas desde tu frontend React
+);
+
 app.use(express.json());
 app.use("/api", routerLab);
 const PORT = process.env.PORT || 3001;
