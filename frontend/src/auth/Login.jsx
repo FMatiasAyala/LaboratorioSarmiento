@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
 export default function Login() {
+  const { login: loginContext } = useAuth(); // ⬅ usamos el contexto
   const [dni, setDni] = useState("");
   const [password, setPassword] = useState("");
   const [step, setStep] = useState(1); // 1 = DNI | 2 = password | 3 = crear password
@@ -12,14 +14,12 @@ export default function Login() {
   const navigate = useNavigate();
   const inputRef = useRef(null);
 
-  // Auto-focus en cada paso
+  // ======== Auto focus en cada step ========
   useEffect(() => {
-    if (inputRef.current) inputRef.current.focus();
+    inputRef.current?.focus();
   }, [step]);
 
-  // =============================
-  // Helpers para reset de estado
-  // =============================
+  // ======== Helpers ========
   const resetAll = () => {
     setDni("");
     setPassword("");
@@ -32,9 +32,9 @@ export default function Login() {
     setError("");
   };
 
-  // =============================
+  // ========================================
   // PASO 1 → Verificar DNI
-  // =============================
+  // ========================================
   const verificarDni = async (e) => {
     e.preventDefault();
     setError("");
@@ -53,16 +53,12 @@ export default function Login() {
         return;
       }
 
-      // Usuario ya tiene cuenta → pedir contraseña
       if (data.existe_mysql) {
         resetPassword();
-        setStep(2);
-      }
-
-      // Paciente existe pero no tiene cuenta → crear contraseña
-      else if (data.existe_dbf && !data.existe_mysql) {
+        setStep(2); // pedir contraseña
+      } else if (data.existe_dbf) {
         resetPassword();
-        setStep(3);
+        setStep(3); // crear contraseña
       }
 
     } catch (err) {
@@ -70,9 +66,9 @@ export default function Login() {
     }
   };
 
-  // =============================
+  // ========================================
   // PASO 2 → Login normal
-  // =============================
+  // ========================================
   const login = async (e) => {
     e.preventDefault();
     setError("");
@@ -91,8 +87,8 @@ export default function Login() {
         return;
       }
 
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("usuario", JSON.stringify(data.user));
+      // Usamos el AUTH CONTEXT
+      loginContext(data.user, data.token);
 
       navigate("/portal");
 
@@ -101,9 +97,9 @@ export default function Login() {
     }
   };
 
-  // =============================
-  // PASO 3 → Crear Password
-  // =============================
+  // ========================================
+  // PASO 3 → Crear contraseña
+  // ========================================
   const crearPassword = async (e) => {
     e.preventDefault();
     setError("");
@@ -122,8 +118,8 @@ export default function Login() {
         return;
       }
 
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("usuario", JSON.stringify(data.user));
+      // Guardamos en AuthContext
+      loginContext(data.user, data.token);
 
       navigate("/portal");
 
@@ -132,9 +128,9 @@ export default function Login() {
     }
   };
 
-  // =============================
+  // ========================================
   // UI
-  // =============================
+  // ========================================
   return (
     <section className="flex items-center justify-center min-h-screen bg-gray-50">
       <div className="w-full max-w-md bg-white shadow-lg rounded-xl p-8">
@@ -148,24 +144,19 @@ export default function Login() {
           <form onSubmit={verificarDni} className="space-y-5">
             <div>
               <label className="block text-gray-700 font-medium mb-1">DNI</label>
-
               <input
                 ref={inputRef}
                 type="text"
                 value={dni}
                 onChange={(e) => setDni(e.target.value)}
-                className="w-full border border-gray-300 rounded-md px-3 py-2
-                focus:outline-none focus:ring-2 focus:ring-[#A63A3A]"
+                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#A63A3A]"
                 required
               />
             </div>
 
             {error && <p className="text-red-600 text-sm text-center">{error}</p>}
 
-            <button
-              type="submit"
-              className="w-full bg-[#A63A3A] text-white py-2 rounded-md font-semibold hover:bg-[#8F2F2F] transition"
-            >
+            <button className="w-full bg-[#A63A3A] text-white py-2 rounded-md font-semibold hover:bg-[#8F2F2F] transition">
               Continuar
             </button>
           </form>
@@ -174,14 +165,10 @@ export default function Login() {
         {/* ========= PASO 2 → PASSWORD ========= */}
         {step === 2 && (
           <form onSubmit={login} className="space-y-5">
-
-            <p className="text-center text-gray-700">
-              Usuario encontrado. Ingrese su contraseña.
-            </p>
+            <p className="text-center text-gray-700">Ingrese su contraseña.</p>
 
             <div>
               <label className="block text-gray-700 font-medium mb-1">Contraseña</label>
-
               <input
                 ref={inputRef}
                 type="password"
@@ -194,18 +181,11 @@ export default function Login() {
 
             {error && <p className="text-red-600 text-sm text-center">{error}</p>}
 
-            <button
-              type="submit"
-              className="w-full bg-[#A63A3A] text-white py-2 rounded-md font-semibold hover:bg-[#8F2F2F] transition"
-            >
+            <button className="w-full bg-[#A63A3A] text-white py-2 rounded-md font-semibold hover:bg-[#8F2F2F] transition">
               Ingresar
             </button>
 
-            <button
-              type="button"
-              className="text-sm mt-2 underline text-gray-600 w-full"
-              onClick={resetAll}
-            >
+            <button type="button" onClick={resetAll} className="text-sm mt-2 underline text-gray-600 w-full">
               Volver atrás
             </button>
           </form>
@@ -214,39 +194,27 @@ export default function Login() {
         {/* ========= PASO 3 → CREAR PASSWORD ========= */}
         {step === 3 && (
           <form onSubmit={crearPassword} className="space-y-5">
-
-            <p className="text-center text-gray-700">
-              Bienvenido. Cree una contraseña para continuar.
-            </p>
+            <p className="text-center text-gray-700">Cree una contraseña.</p>
 
             <div>
-              <label className="block text-gray-700 font-medium mb-1">Crear contraseña</label>
-
+              <label className="block text-gray-700 font-medium mb-1">Contraseña nueva</label>
               <input
                 ref={inputRef}
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full border border-gray-300 rounded-md px-3 py-2
-                focus:outline-none focus:ring-2 focus:ring-[#A63A3A]"
+                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#A63A3A]"
                 required
               />
             </div>
 
             {error && <p className="text-red-600 text-sm text-center">{error}</p>}
 
-            <button
-              type="submit"
-              className="w-full bg-[#A63A3A] text-white py-2 rounded-md font-semibold hover:bg-[#8F2F2F] transition"
-            >
+            <button className="w-full bg-[#A63A3A] text-white py-2 rounded-md font-semibold hover:bg-[#8F2F2F] transition">
               Crear cuenta y entrar
             </button>
 
-            <button
-              type="button"
-              className="text-sm mt-2 underline text-gray-600 w-full"
-              onClick={resetAll}
-            >
+            <button type="button" onClick={resetAll} className="text-sm mt-2 underline text-gray-600 w-full">
               Volver atrás
             </button>
           </form>

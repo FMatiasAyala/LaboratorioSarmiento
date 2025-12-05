@@ -1,72 +1,69 @@
 import { Suspense } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
+import { useAuth } from "./context/AuthContext";
+
 import AppLayout from "./layouts/AppLayout";
 import PortalLayout from "./layouts/PortalLayout";
+import UserAdminLayout from "./layouts/UserAdminLayout";
+
 import Home from "./page/Home";
 import NotFound from "./page/NotFound";
 import Login from "./auth/Login";
 import Resultados from "./page/Portal/Resultados";
 import PreguntasFrecuentes from "./page/FAQ";
-import UserAdminLayout from "./layouts/UserAdminLayout";
 import UsuariosList from "./page/Portal/UsuariosList";
 
 export default function App() {
-  const usuario = JSON.parse(localStorage.getItem("usuario") || "null");
-
-  const rol = usuario?.rol;
+  const { usuario, rol, isLogged } = useAuth();
 
   return (
     <Suspense>
       <Routes>
 
-        {/* --- PUBLICA --- */}
+        {/* PUBLICA */}
         <Route element={<AppLayout />}>
           <Route index element={<Home />} />
           <Route path="inicio" element={<Home />} />
           <Route path="pacientes/preguntas" element={<PreguntasFrecuentes />} />
         </Route>
 
-        {/* LOGIN */}
         <Route path="/portal/login" element={<Login />} />
 
-        {/* RUTAS PROTEGIDAS */}
+        {/* PROTEGIDA */}
         <Route
           path="/portal/*"
           element={
-            !usuario
+            !isLogged
               ? <Navigate to="/portal/login" />
               : rol === "admin"
                 ? <UserAdminLayout />
-                : rol === "paciente"
-                  ? <PortalLayout />
-                  : <Navigate to="/portal/login" />   // rol desconocido
+                : <PortalLayout />
           }
         >
-          {/* PACIENTE */}
-          <Route path="resultados" element={<Resultados />} />
 
-          {/* ADMIN */}
-          <Route path="usuarios" element={<UsuariosList />} />
+          {/* Paciente */}
+          {rol === "paciente" && (
+            <Route path="resultados" element={<Resultados />} />
+          )}
 
-          {/* REDIRECT según rol */}
+          {/* Admin */}
+          {rol === "admin" && (
+            <Route path="usuarios" element={<UsuariosList />} />
+          )}
+
+          {/* Redirección por defecto */}
           <Route
             index
             element={
               rol === "admin"
                 ? <Navigate to="usuarios" />
-                : rol === "paciente"
-                  ? <Navigate to="resultados" />
-                  : <Navigate to="/portal/login" />
+                : <Navigate to="resultados" />
             }
           />
         </Route>
 
-        {/* 404 */}
         <Route path="*" element={<NotFound />} />
-
       </Routes>
     </Suspense>
   );
 }
-
-
