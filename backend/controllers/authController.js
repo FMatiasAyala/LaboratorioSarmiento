@@ -78,7 +78,7 @@ exports.crearPassword = async (req, res) => {
        VALUES (?, ?, ?, ?, ?, ?, ?)`,
       [
         pac.ndoc,
-        pac.nombre.trim(),
+        pac.nompac.trim(),
         pac.apellido.trim(),
         fechaNac,
         pac.codigo,
@@ -90,7 +90,7 @@ exports.crearPassword = async (req, res) => {
     const user = {
       id: insert.insertId,
       dni: pac.ndoc,
-      nombre: pac.nombre.trim(),
+      nombre: pac.nompac.trim(),
       apellido: pac.apellido.trim(),
       fecha_nac: fechaNac,
       nro_historia: pac.codigo,

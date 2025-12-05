@@ -26,7 +26,6 @@ exports.buscarPorDniAvanzado = async (req, res) => {
       `${process.env.LAB_API}/api/pacientes/${dni}?key=${process.env.LAB_KEY}`
     );
     const pac = await resp.json();
-    console.log("Paciente DBF encontrado:", pac);
 
     if (pac && pac.ndoc) {
       return res.json({
@@ -36,7 +35,7 @@ exports.buscarPorDniAvanzado = async (req, res) => {
         origen: "laboratorio",
         usuario: {
           dni: pac.ndoc,
-          nombre: pac.nombre.trim(),
+          nombre: pac.nompac.trim(),
           apellido: pac.apellido.trim(),
           fecha_nac: pac.fechanac ? pac.fechanac.split("T")[0] : null,
           nro_historia: pac.codigo,
