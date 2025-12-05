@@ -54,7 +54,9 @@ export default function App() {
             element={
               rol === "admin"
                 ? <Navigate to="usuarios" />
-                : <Navigate to="resultados" />
+                : rol === "paciente"
+                  ? <Navigate to="resultados" />
+                  : <Navigate to="/portal/login" />
             }
           />
         </Route>
