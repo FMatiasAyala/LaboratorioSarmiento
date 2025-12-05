@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from "react";
 import ModalUsuario from "../../components/Portal/ModalUsuario";
 import { UsuariosAPI } from "../../../api/UsuariosAPI";
+import toast from "react-hot-toast";
 
 export default function UsuarioForm({ open, onClose, usuario, onSaved }) {
   const isEdit = !!usuario?.id;
+  const [modo, setModo] = useState("crear");
+
 
   const [form, setForm] = useState({
     dni: "",
@@ -49,6 +52,7 @@ export default function UsuarioForm({ open, onClose, usuario, onSaved }) {
     if (!form.dni || form.dni.length < 6) {
       toast.error("DNI inválido.");
       setDniStatus("invalid");
+      setModo("invalido");
       return;
     }
 
@@ -56,46 +60,69 @@ export default function UsuarioForm({ open, onClose, usuario, onSaved }) {
     setDniStatus("checking");
 
     const data = await UsuariosAPI.buscarAvanzado(form.dni);
-
     setLoadingDni(false);
 
-    if (!data.ok && data.error) {
-      toast.error("El DNI no pertenece a un paciente registrado.");
-      setDniStatus("no-paciente");
+    if (!data || data.ok === false) {
+      toast.error(data?.error || "Error validando DNI.");
+      setModo("invalido");
       return;
     }
 
+    // 👉 NUEVO usuario
     if (!data.existe_mysql && data.existe_dbf) {
-      toast.success("Paciente encontrado en el laboratorio. Datos completados.");
+      toast.success("Paciente encontrado. Datos importados.");
+      setModo("crear");
       setForm((f) => ({
         ...f,
-        nombre: data.usuario.nombre,
-        apellido: data.usuario.apellido,
-        fecha_nac: data.usuario.fecha_nac,
-        nro_historia: data.usuario.nro_historia,
+        nombre: data.usuario?.nombre || "",
+        apellido: data.usuario?.apellido || "",
+        fecha_nac: data.usuario?.fecha_nac || "",
+        nro_historia: data.usuario?.nro_historia || "",
       }));
-      setDniStatus("nuevo");
       setAllowPassword(true);
+      setDniStatus("nuevo");
       return;
     }
 
+    // 👉 USUARIO EXISTENTE
     if (data.existe_mysql) {
-      toast("El usuario ya está registrado. Puedes editarlo.", {
-        icon: "ℹ️",
-      });
+      toast("El usuario ya está registrado.", { icon: "ℹ️" });
+      setModo("editar");
       setForm((f) => ({
         ...f,
-        nombre: data.usuario.nombre,
-        apellido: data.usuario.apellido,
-        fecha_nac: data.usuario.fecha_nac,
-        nro_historia: data.usuario.nro_historia,
-        rol: data.usuario.rol,
+        nombre: data.usuario?.nombre || "",
+        apellido: data.usuario?.apellido || "",
+        fecha_nac: data.usuario?.fecha_nac || "",
+        nro_historia: data.usuario?.nro_historia || "",
+        rol: data.usuario?.rol || "paciente",
       }));
-      setDniStatus("registrado");
       setAllowPassword(true);
+      setDniStatus("registrado");
       return;
     }
+
+    // 👉 DNI NO EXISTE EN NINGUNA DB
+    toast.error("Este DNI no pertenece a ningún paciente.");
+    setModo("invalido");
+    setDniStatus("no-paciente");
   };
+
+
+
+  const limpiarDatos = () => {
+    setForm({
+      dni: "",
+      nombre: "",
+      apellido: "",
+      fecha_nac: "",
+      nro_historia: "",
+      rol: "paciente",
+      password: "",
+    });
+    setDniStatus(null);
+    setAllowPassword(false);
+    setModo("crear");
+  }
 
   // ============================
   // SUBMIT
@@ -132,11 +159,9 @@ export default function UsuarioForm({ open, onClose, usuario, onSaved }) {
   // RENDER
   // ============================
   return (
-    <ModalUsuario open={open} onClose={onClose}>
-      <h2 className="text-xl font-bold mb-4">
-        {isEdit ? "Editar Usuario" : "Crear Usuario"}
-      </h2>
-
+    <ModalUsuario open={open}
+      onClose={onClose}
+      title={isEdit ? "Editar Usuario" : "Crear Usuario"}>
       <form onSubmit={submit} className="space-y-3">
 
         {/* DNI */}
@@ -164,7 +189,7 @@ export default function UsuarioForm({ open, onClose, usuario, onSaved }) {
 
                 <button
                   type="button"
-                  onClick={() => window.location.reload()}
+                  onClick={limpiarDatos}
                   className="bg-gray-600 text-white px-3 rounded"
                 >
                   Limpiar
@@ -241,10 +266,21 @@ export default function UsuarioForm({ open, onClose, usuario, onSaved }) {
 
           <button
             type="submit"
-            className="px-4 py-2 rounded bg-green-600 text-white"
+            disabled={modo === "invalido"}
+            className={`px-4 py-2 rounded text-white ${modo === "invalido"
+                ? "bg-gray-400 cursor-not-allowed"
+                : "bg-green-600 hover:bg-green-700"
+              }`}
           >
-            {isEdit ? "Guardar" : "Crear"}
+            {isEdit
+              ? "Guardar"
+              : modo === "editar"
+                ? "Editar"
+                : modo === "crear"
+                  ? "Crear"
+                  : "..."}
           </button>
+
         </div>
 
       </form>
