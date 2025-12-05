@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { UsuariosAPI } from "../../../api/UsuariosAPI";
 import UsuarioForm from "./UsuarioForm";
+import ModalConfirm from "../../components/Portal/ModalConfirm";
 import { FaPlus, FaEdit, FaTrash } from "react-icons/fa";
 
 export default function UsuariosList() {
@@ -8,6 +9,7 @@ export default function UsuariosList() {
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState(null);
   const [openModal, setOpenModal] = useState(false);
+  const [deleteId, setDeleteId] = useState(null);
 
 
   const cargarUsuarios = async () => {
@@ -62,6 +64,24 @@ export default function UsuariosList() {
         />
       )}
 
+      {deleteId !== null && (
+        <ModalConfirm
+          open={true}
+          onClose={() => setDeleteId(null)}
+          title="Eliminar usuario"
+          message="¿Estás seguro que querés eliminar este usuario? Esta acción no se puede deshacer."
+          onConfirm={async () => {
+            const data = await UsuariosAPI.remove(deleteId);
+            if (data.ok) {
+              alert("Usuario eliminado");
+              cargarUsuarios();
+            } else {
+              alert(data.error || "Error eliminando usuario");
+            }
+            setDeleteId(null);
+          }}
+        />
+      )}
 
       {/* LOADING */}
       {loading ? (
@@ -101,7 +121,7 @@ export default function UsuariosList() {
                     </button>
 
                     <button
-                      onClick={() => handleDelete(u.id)}
+                      onClick={() => setDeleteId(u.id)}
                       className="text-red-600 hover:text-red-800"
                       title="Eliminar"
                     >
