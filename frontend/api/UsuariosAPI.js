@@ -48,4 +48,10 @@ export const UsuariosAPI = {
     });
     return res.json();
   },
+  async buscarAvanzado(dni) {
+    const res = await fetch(`${API_URL}/api/usuarios/buscar/${dni}`, {
+      headers: getHeaders(),
+    });
+    return res.json();
+  },
 };

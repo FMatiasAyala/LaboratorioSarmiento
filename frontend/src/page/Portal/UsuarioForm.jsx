@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { UsuariosAPI } from "../../../api/UsuariosAPI";
-import { FaTimes } from "react-icons/fa";
 
 export default function UsuarioForm({ usuario, onClose, onSaved }) {
   const isEdit = !!usuario.id;
@@ -15,177 +14,246 @@ export default function UsuarioForm({ usuario, onClose, onSaved }) {
     password: "",
   });
 
+  const [loadingDni, setLoadingDni] = useState(false);
+  const [dniStatus, setDniStatus] = useState(null); // mensaje resumen
+  const [allowEditPassword, setAllowEditPassword] = useState(false);
+
+  // ============================
+  // SI ES EDICIÓN → CARGA DIRECTA
+  // ============================
   useEffect(() => {
     if (isEdit) {
       setForm({
-        dni: usuario.dni || "",
-        nombre: usuario.nombre || "",
-        apellido: usuario.apellido || "",
+        dni: usuario.dni,
+        nombre: usuario.nombre,
+        apellido: usuario.apellido,
         fecha_nac: usuario.fecha_nac || "",
         nro_historia: usuario.nro_historia || "",
         rol: usuario.rol || "paciente",
         password: "",
       });
+      setDniStatus("edit");
     }
   }, [usuario]);
 
+  // ============================
+  // HANDLER DE CAMBIO
+  // ============================
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
-  };
 
-  const submit = async (e) => {
-    e.preventDefault();
-
-    if (isEdit) {
-      const data = await UsuariosAPI.update(usuario.id, form);
-      if (data.ok) {
-        alert("Usuario actualizado correctamente");
-        onSaved();
-      } else {
-        alert(data.error || "Error al actualizar");
-      }
-    } else {
-      if (!form.password) return alert("La contraseña es obligatoria");
-
-      const data = await UsuariosAPI.create(form);
-      if (data.ok) {
-        alert("Usuario creado correctamente");
-        onSaved();
-      } else {
-        alert(data.error || "Error creando usuario");
-      }
+    if (e.target.name === "dni" && !isEdit) {
+      setDniStatus(null);
+      triggerDniCheck(e.target.value);
     }
   };
 
+  // ============================
+  // CHEQUEAR DNI AUTOMÁTICAMENTE
+  // ============================
+  let dniTimer = null;
+  const triggerDniCheck = (dni) => {
+    if (!dni || dni.length < 6) return;
+
+    clearTimeout(dniTimer);
+    dniTimer = setTimeout(() => verificarDni(dni), 600);
+  };
+
+  const verificarDni = async (dni) => {
+    setLoadingDni(true);
+    setDniStatus("checking");
+
+    const data = await UsuariosAPI.buscarAvanzado(dni);
+
+    setLoadingDni(false);
+
+    // ❌ NO ES PACIENTE
+    if (!data.ok && data.error) {
+      setDniStatus("no-paciente");
+      return;
+    }
+
+    // 🟢 PACIENTE EXISTE EN LAB Y NO REGISTRADO EN MYSQL
+    if (!data.existe_mysql && data.existe_dbf) {
+      setForm((f) => ({
+        ...f,
+        dni,
+        nombre: data.usuario.nombre,
+        apellido: data.usuario.apellido,
+        fecha_nac: data.usuario.fecha_nac,
+        nro_historia: data.usuario.nro_historia,
+      }));
+      setDniStatus("nuevo");
+      setAllowEditPassword(true);
+      return;
+    }
+
+    // 🟡 USUARIO YA REGISTRADO
+    if (data.existe_mysql) {
+      setForm((f) => ({
+        ...f,
+        dni,
+        nombre: data.usuario.nombre,
+        apellido: data.usuario.apellido,
+        fecha_nac: data.usuario.fecha_nac,
+        nro_historia: data.usuario.nro_historia,
+        rol: data.usuario.rol,
+      }));
+      setDniStatus("registrado");
+      setAllowEditPassword(true);
+      return;
+    }
+  };
+
+  // ============================
+  // SUBMIT
+  // ============================
+  const submit = async (e) => {
+    e.preventDefault();
+
+    if (!isEdit && dniStatus === "no-paciente") {
+      alert("El DNI no pertenece a un paciente del laboratorio.");
+      return;
+    }
+
+    if (!isEdit && !allowEditPassword) {
+      alert("Debe generar contraseña para registrar este usuario.");
+      return;
+    }
+
+    if (!isEdit && form.password.trim() === "") {
+      alert("La contraseña es obligatoria.");
+      return;
+    }
+
+    let data;
+    if (isEdit) {
+      data = await UsuariosAPI.update(usuario.id, form);
+    } else {
+      data = await UsuariosAPI.create(form);
+    }
+
+    if (data.ok) {
+      alert(isEdit ? "Usuario actualizado" : "Usuario creado");
+      onSaved();
+    } else {
+      alert(data.error || "Error al guardar");
+    }
+  };
+
+  // ============================
+  // UI DE ESTADO DE DNI
+  // ============================
+  const renderDniStatus = () => {
+    if (loadingDni) return <p className="text-blue-600">🔍 Chequeando paciente...</p>;
+
+    switch (dniStatus) {
+      case "no-paciente":
+        return <p className="text-red-600">❌ El DNI NO pertenece a ningún paciente.</p>;
+      case "nuevo":
+        return <p className="text-green-700">🟢 Paciente encontrado. Completado automáticamente.</p>;
+      case "registrado":
+        return <p className="text-orange-600">🟡 Usuario ya registrado, completado desde MySQL.</p>;
+      default:
+        return null;
+    }
+  };
+
+  // ============================
+  // FORMULARIO
+  // ============================
   return (
-    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-      <div className="bg-white w-full max-w-lg rounded-2xl shadow-xl p-6 relative">
+    <div style={{ background: "#f5f5f5", padding: 20, marginTop: 20, borderRadius: 10 }}>
+      <h2>{isEdit ? "Editar Usuario" : "Crear Usuario"}</h2>
 
-        {/* BOTÓN CERRAR */}
-        <button
-          onClick={onClose}
-          className="absolute top-3 right-3 text-gray-400 hover:text-gray-700"
+      <form onSubmit={submit} className="space-y-3">
+
+        {/* DNI */}
+        <div>
+          <label>DNI</label>
+          <input
+            name="dni"
+            value={form.dni}
+            onChange={handleChange}
+            disabled={isEdit}
+            required
+            className="border p-2 rounded w-full"
+          />
+          {renderDniStatus()}
+        </div>
+
+        {/* NOMBRE */}
+        <input
+          name="nombre"
+          placeholder="Nombre"
+          value={form.nombre}
+          onChange={handleChange}
+          className="border p-2 rounded w-full"
+          required
+        />
+
+        {/* APELLIDO */}
+        <input
+          name="apellido"
+          placeholder="Apellido"
+          value={form.apellido}
+          onChange={handleChange}
+          className="border p-2 rounded w-full"
+          required
+        />
+
+        {/* FECHA NAC */}
+        <input
+          type="date"
+          name="fecha_nac"
+          value={form.fecha_nac}
+          onChange={handleChange}
+          className="border p-2 rounded w-full"
+        />
+
+        {/* HISTORIA */}
+        <input
+          name="nro_historia"
+          placeholder="Nro Historia"
+          value={form.nro_historia}
+          onChange={handleChange}
+          className="border p-2 rounded w-full"
+        />
+
+        {/* ROL */}
+        <select
+          name="rol"
+          value={form.rol}
+          onChange={handleChange}
+          className="border p-2 rounded w-full"
         >
-          <FaTimes size={20} />
-        </button>
+          <option value="paciente">Paciente</option>
+          <option value="admin">Administrador</option>
+        </select>
 
-        {/* TÍTULO */}
-        <h2 className="text-2xl font-bold text-[#A63A3A] mb-5">
-          {isEdit ? "Editar Usuario" : "Crear Usuario"}
-        </h2>
+        {/* PASSWORD */}
+        {(!isEdit || dniStatus === "registrado") && (
+          <input
+            name="password"
+            type="password"
+            placeholder={isEdit ? "Nueva contraseña (opcional)" : "Contraseña"}
+            value={form.password}
+            onChange={handleChange}
+            className="border p-2 rounded w-full"
+          />
+        )}
 
-        <form onSubmit={submit} className="space-y-4">
+        {/* BOTONES */}
+        <div className="flex gap-2 mt-3">
+          <button type="submit" className="bg-green-600 text-white px-4 py-2 rounded">
+            {isEdit ? "Guardar cambios" : "Crear usuario"}
+          </button>
+          <button type="button" onClick={onClose} className="bg-gray-400 text-white px-4 py-2 rounded">
+            Cerrar
+          </button>
+        </div>
 
-          {/* DNI */}
-          <div>
-            <label className="block text-sm font-medium mb-1">DNI</label>
-            <input
-              name="dni"
-              value={form.dni}
-              onChange={handleChange}
-              className="w-full border rounded-md px-3 py-2 focus:ring-2 focus:ring-[#A63A3A]"
-              required
-            />
-          </div>
-
-          {/* Nombre */}
-          <div>
-            <label className="block text-sm font-medium mb-1">Nombre</label>
-            <input
-              name="nombre"
-              value={form.nombre}
-              onChange={handleChange}
-              className="w-full border rounded-md px-3 py-2 focus:ring-2 focus:ring-[#A63A3A]"
-              required
-            />
-          </div>
-
-          {/* Apellido */}
-          <div>
-            <label className="block text-sm font-medium mb-1">Apellido</label>
-            <input
-              name="apellido"
-              value={form.apellido}
-              onChange={handleChange}
-              className="w-full border rounded-md px-3 py-2 focus:ring-2 focus:ring-[#A63A3A]"
-              required
-            />
-          </div>
-
-          {/* Fecha de nacimiento */}
-          <div>
-            <label className="block text-sm font-medium mb-1">
-              Fecha de Nacimiento
-            </label>
-            <input
-              name="fecha_nac"
-              type="date"
-              value={form.fecha_nac}
-              onChange={handleChange}
-              className="w-full border rounded-md px-3 py-2 focus:ring-2 focus:ring-[#A63A3A]"
-            />
-          </div>
-
-          {/* Número de historia */}
-          <div>
-            <label className="block text-sm font-medium mb-1">Nro Historia</label>
-            <input
-              name="nro_historia"
-              value={form.nro_historia}
-              onChange={handleChange}
-              className="w-full border rounded-md px-3 py-2 focus:ring-2 focus:ring-[#A63A3A]"
-            />
-          </div>
-
-          {/* Rol */}
-          <div>
-            <label className="block text-sm font-medium mb-1">Rol</label>
-            <select
-              name="rol"
-              value={form.rol}
-              onChange={handleChange}
-              className="w-full border rounded-md px-3 py-2 focus:ring-2 focus:ring-[#A63A3A]"
-            >
-              <option value="paciente">Paciente</option>
-              <option value="admin">Administrador</option>
-            </select>
-          </div>
-
-          {/* Contraseña solo al crear */}
-          {!isEdit && (
-            <div>
-              <label className="block text-sm font-medium mb-1">Contraseña</label>
-              <input
-                name="password"
-                type="password"
-                value={form.password}
-                onChange={handleChange}
-                className="w-full border rounded-md px-3 py-2 focus:ring-2 focus:ring-[#A63A3A]"
-                required
-              />
-            </div>
-          )}
-
-          {/* BOTONES */}
-          <div className="flex justify-end gap-3 pt-4">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 border rounded-md hover:bg-gray-100"
-            >
-              Cancelar
-            </button>
-
-            <button
-              type="submit"
-              className="px-4 py-2 bg-[#A63A3A] text-white rounded-md hover:bg-[#8F2F2F] transition"
-            >
-              {isEdit ? "Guardar cambios" : "Crear usuario"}
-            </button>
-          </div>
-        </form>
-
-      </div>
+      </form>
     </div>
   );
 }

@@ -30,6 +30,12 @@ router.get(
   requireAdmin,
   usuarioController.obtenerUsuario
 );
+router.get(
+  "/usuarios/buscar/:dni",
+  authMiddleware,
+  requireAdmin,
+  usuarioController.buscarPorDni
+);
 router.put(
   "/usuarios/:id",
   authMiddleware,
