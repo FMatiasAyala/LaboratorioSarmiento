@@ -4,9 +4,9 @@ import { useAuth } from "../../context/AuthContext";
 
 export default function Sidebar() {
   const navigate = useNavigate();
-  const { user, logout } = useAuth();  // ⬅ obtenemos rol desde AuthContext
+  const { usuario, logout } = useAuth();  // ⬅ obtenemos rol desde AuthContext
 
-  const rol = user?.rol; // "admin" | "paciente"
+  const rol = usuario?.rol; // "admin" | "paciente"
 
   // LINKS SEGÚN ROL
   const linksPaciente = [
