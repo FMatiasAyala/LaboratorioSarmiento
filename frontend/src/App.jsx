@@ -13,49 +13,58 @@ import UsuariosList from "./page/Portal/UsuariosList";
 function App() {
   const usuario = JSON.parse(localStorage.getItem("usuario") || "null");
 
+  const rol = usuario?.rol;
+
   return (
     <Suspense>
       <Routes>
 
-        {/* --- WEB PÚBLICA --- */}
+        {/* --- PUBLICA --- */}
         <Route element={<AppLayout />}>
           <Route index element={<Home />} />
           <Route path="inicio" element={<Home />} />
           <Route path="pacientes/preguntas" element={<PreguntasFrecuentes />} />
-          <Route path="*" element={<NotFound />} />
         </Route>
 
-        {/* --- LOGIN DEL PORTAL --- */}
+        {/* LOGIN */}
         <Route path="/portal/login" element={<Login />} />
 
-        {/* --- PORTAL PROTEGIDO (PACIENTE O ADMIN) --- */}
+        {/* RUTAS PROTEGIDAS */}
         <Route
           path="/portal/*"
           element={
-            usuario
-              ? usuario.rol === "admin"
-                ? <UserAdminLayout />   // ADMIN
-                : <PortalLayout />      // PACIENTE
-              : <Navigate to="/portal/login" />
+            !usuario
+              ? <Navigate to="/portal/login" />
+              : rol === "admin"
+                ? <UserAdminLayout />
+                : rol === "paciente"
+                  ? <PortalLayout />
+                  : <Navigate to="/portal/login" />   // rol desconocido
           }
         >
-          {/* Paciente → resultados */}
-          {usuario?.rol === "paciente" && (
-            <Route index element={<Resultados />} />
-          )}
+          {/* PACIENTE */}
+          <Route path="resultados" element={<Resultados />} />
 
-          {/* Admin → lista de usuarios */}
-          {usuario?.rol === "admin" && (
-            <Route index element={<UsuariosList />} />
-          )}
+          {/* ADMIN */}
+          <Route path="usuarios" element={<UsuariosList />} />
+
+          {/* REDIRECT según rol */}
+          <Route
+            index
+            element={
+              rol === "admin"
+                ? <Navigate to="usuarios" />
+                : <Navigate to="resultados" />
+            }
+          />
         </Route>
 
-        {/* --- 404 FINAL --- */}
+        {/* 404 */}
         <Route path="*" element={<NotFound />} />
+
       </Routes>
     </Suspense>
   );
 }
 
-export default App;
 
