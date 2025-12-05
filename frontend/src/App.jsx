@@ -40,7 +40,7 @@ function App() {
           }
         >
           {/* Paciente → resultados */}
-          {usuario?.rol !== "admin" && (
+          {usuario?.rol === "paciente" && (
             <Route index element={<Resultados />} />
           )}
 
