@@ -10,7 +10,7 @@ import PreguntasFrecuentes from "./page/FAQ";
 import UserAdminLayout from "./layouts/UserAdminLayout";
 import UsuariosList from "./page/Portal/UsuariosList";
 
-function App() {
+export default function App() {
   const usuario = JSON.parse(localStorage.getItem("usuario") || "null");
 
   const rol = usuario?.rol;
