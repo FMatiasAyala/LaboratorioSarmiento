@@ -1,6 +1,62 @@
 const pool = require("../db");
 const bcrypt = require("bcrypt");
 
+exports.buscarPorDniAvanzado = async (req, res) => {
+  const dni = req.params.dni;
+
+  try {
+    // Buscar en MySQL
+    const [usuarios] = await pool.query(
+      "SELECT * FROM usuarios WHERE dni = ? LIMIT 1",
+      [dni]
+    );
+
+    if (usuarios.length > 0) {
+      return res.json({
+        ok: true,
+        existe_mysql: true,
+        existe_dbf: true,
+        origen: "mysql",
+        usuario: usuarios[0],
+      });
+    }
+
+    // Buscar en DBF (LAB)
+    const resp = await fetch(
+      `${process.env.LAB_API}/api/pacientes/${dni}?key=${process.env.LAB_KEY}`
+    );
+    const pac = await resp.json();
+
+    if (pac && pac.ndoc) {
+      return res.json({
+        ok: true,
+        existe_mysql: false,
+        existe_dbf: true,
+        origen: "laboratorio",
+        usuario: {
+          dni: pac.ndoc,
+          nombre: pac.nombre.trim(),
+          apellido: pac.apellido.trim(),
+          fecha_nac: pac.fechanac ? pac.fechanac.split("T")[0] : null,
+          nro_historia: pac.codigo,
+          rol: "paciente",
+        },
+      });
+    }
+
+    // No existe en ningún lado → NO ES PACIENTE
+    return res.status(404).json({
+      ok: false,
+      existe_mysql: false,
+      existe_dbf: false,
+      error: "El DNI no pertenece a ningún paciente",
+    });
+  } catch (err) {
+    console.error("ERROR buscarPorDniAvanzado:", err);
+    res.status(500).json({ ok: false, error: "Error interno" });
+  }
+};
+
 // ================================
 // CREAR USUARIO DESDE ADMIN
 // ================================
@@ -27,7 +83,15 @@ exports.crearUsuario = async (req, res) => {
 
     res.json({
       ok: true,
-      user: { id: insert.insertId, dni, nombre, apellido, fecha_nac, nro_historia, rol },
+      user: {
+        id: insert.insertId,
+        dni,
+        nombre,
+        apellido,
+        fecha_nac,
+        nro_historia,
+        rol,
+      },
     });
   } catch (err) {
     console.error("ERROR crearUsuario:", err);
