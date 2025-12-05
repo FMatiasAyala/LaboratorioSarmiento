@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
+import ModalUsuario from "../../components/Portal/ModalUsuario";
 import { UsuariosAPI } from "../../../api/UsuariosAPI";
 
-export default function UsuarioForm({ usuario, onClose, onSaved }) {
-  const isEdit = !!usuario.id;
+export default function UsuarioForm({ open, onClose, usuario, onSaved }) {
+  const isEdit = !!usuario?.id;
 
   const [form, setForm] = useState({
     dni: "",
@@ -15,14 +16,14 @@ export default function UsuarioForm({ usuario, onClose, onSaved }) {
   });
 
   const [loadingDni, setLoadingDni] = useState(false);
-  const [dniStatus, setDniStatus] = useState(null); // mensaje resumen
-  const [allowEditPassword, setAllowEditPassword] = useState(false);
+  const [dniStatus, setDniStatus] = useState(null);
+  const [allowPassword, setAllowPassword] = useState(false);
 
   // ============================
-  // SI ES EDICIÓN → CARGA DIRECTA
+  // CARGAR DATOS SI EDITA
   // ============================
   useEffect(() => {
-    if (isEdit) {
+    if (isEdit && usuario) {
       setForm({
         dni: usuario.dni,
         nombre: usuario.nombre,
@@ -33,66 +34,57 @@ export default function UsuarioForm({ usuario, onClose, onSaved }) {
         password: "",
       });
       setDniStatus("edit");
+      setAllowPassword(true);
     }
   }, [usuario]);
 
-  // ============================
-  // HANDLER DE CAMBIO
-  // ============================
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
+  };
 
-    if (e.target.name === "dni" && !isEdit) {
-      setDniStatus(null);
-      triggerDniCheck(e.target.value);
+  // ============================
+  // VALIDAR DNI
+  // ============================
+  const validarDni = async () => {
+    if (!form.dni || form.dni.length < 6) {
+      toast.error("DNI inválido.");
+      setDniStatus("invalid");
+      return;
     }
-  };
 
-  // ============================
-  // CHEQUEAR DNI AUTOMÁTICAMENTE
-  // ============================
-  let dniTimer = null;
-  const triggerDniCheck = (dni) => {
-    if (!dni || dni.length < 6) return;
-
-    clearTimeout(dniTimer);
-    dniTimer = setTimeout(() => verificarDni(dni), 600);
-  };
-
-  const verificarDni = async (dni) => {
     setLoadingDni(true);
     setDniStatus("checking");
 
-    const data = await UsuariosAPI.buscarAvanzado(dni);
+    const data = await UsuariosAPI.buscarAvanzado(form.dni);
 
     setLoadingDni(false);
 
-    // ❌ NO ES PACIENTE
     if (!data.ok && data.error) {
+      toast.error("El DNI no pertenece a un paciente registrado.");
       setDniStatus("no-paciente");
       return;
     }
 
-    // 🟢 PACIENTE EXISTE EN LAB Y NO REGISTRADO EN MYSQL
     if (!data.existe_mysql && data.existe_dbf) {
+      toast.success("Paciente encontrado en el laboratorio. Datos completados.");
       setForm((f) => ({
         ...f,
-        dni,
         nombre: data.usuario.nombre,
         apellido: data.usuario.apellido,
         fecha_nac: data.usuario.fecha_nac,
         nro_historia: data.usuario.nro_historia,
       }));
       setDniStatus("nuevo");
-      setAllowEditPassword(true);
+      setAllowPassword(true);
       return;
     }
 
-    // 🟡 USUARIO YA REGISTRADO
     if (data.existe_mysql) {
+      toast("El usuario ya está registrado. Puedes editarlo.", {
+        icon: "ℹ️",
+      });
       setForm((f) => ({
         ...f,
-        dni,
         nombre: data.usuario.nombre,
         apellido: data.usuario.apellido,
         fecha_nac: data.usuario.fecha_nac,
@@ -100,7 +92,7 @@ export default function UsuarioForm({ usuario, onClose, onSaved }) {
         rol: data.usuario.rol,
       }));
       setDniStatus("registrado");
-      setAllowEditPassword(true);
+      setAllowPassword(true);
       return;
     }
   };
@@ -111,78 +103,78 @@ export default function UsuarioForm({ usuario, onClose, onSaved }) {
   const submit = async (e) => {
     e.preventDefault();
 
-    if (!isEdit && dniStatus === "no-paciente") {
-      alert("El DNI no pertenece a un paciente del laboratorio.");
-      return;
+    if (!isEdit) {
+      if (!dniStatus || dniStatus === "checking") {
+        return toast.error("Primero debe validar el DNI.");
+      }
+      if (dniStatus === "no-paciente") {
+        return toast.error("DNI no válido para registro.");
+      }
+      if (allowPassword && form.password.trim() === "") {
+        return toast.error("Debe ingresar una contraseña.");
+      }
     }
 
-    if (!isEdit && !allowEditPassword) {
-      alert("Debe generar contraseña para registrar este usuario.");
-      return;
-    }
-
-    if (!isEdit && form.password.trim() === "") {
-      alert("La contraseña es obligatoria.");
-      return;
-    }
-
-    let data;
-    if (isEdit) {
-      data = await UsuariosAPI.update(usuario.id, form);
-    } else {
-      data = await UsuariosAPI.create(form);
-    }
+    let data = isEdit
+      ? await UsuariosAPI.update(usuario.id, form)
+      : await UsuariosAPI.create(form);
 
     if (data.ok) {
-      alert(isEdit ? "Usuario actualizado" : "Usuario creado");
+      toast.success(isEdit ? "Usuario actualizado" : "Usuario creado");
       onSaved();
+      onClose();
     } else {
-      alert(data.error || "Error al guardar");
+      toast.error(data.error || "Error al guardar");
     }
   };
 
   // ============================
-  // UI DE ESTADO DE DNI
-  // ============================
-  const renderDniStatus = () => {
-    if (loadingDni) return <p className="text-blue-600">🔍 Chequeando paciente...</p>;
-
-    switch (dniStatus) {
-      case "no-paciente":
-        return <p className="text-red-600">❌ El DNI NO pertenece a ningún paciente.</p>;
-      case "nuevo":
-        return <p className="text-green-700">🟢 Paciente encontrado. Completado automáticamente.</p>;
-      case "registrado":
-        return <p className="text-orange-600">🟡 Usuario ya registrado, completado desde MySQL.</p>;
-      default:
-        return null;
-    }
-  };
-
-  // ============================
-  // FORMULARIO
+  // RENDER
   // ============================
   return (
-    <div style={{ background: "#f5f5f5", padding: 20, marginTop: 20, borderRadius: 10 }}>
-      <h2>{isEdit ? "Editar Usuario" : "Crear Usuario"}</h2>
+    <ModalUsuario open={open} onClose={onClose}>
+      <h2 className="text-xl font-bold mb-4">
+        {isEdit ? "Editar Usuario" : "Crear Usuario"}
+      </h2>
 
       <form onSubmit={submit} className="space-y-3">
 
         {/* DNI */}
         <div>
-          <label>DNI</label>
-          <input
-            name="dni"
-            value={form.dni}
-            onChange={handleChange}
-            disabled={isEdit}
-            required
-            className="border p-2 rounded w-full"
-          />
-          {renderDniStatus()}
+          <label className="font-medium">DNI</label>
+          <div className="flex gap-2">
+            <input
+              name="dni"
+              value={form.dni}
+              onChange={handleChange}
+              disabled={isEdit}
+              required
+              className="border p-2 rounded w-full"
+            />
+
+            {!isEdit && (
+              <>
+                <button
+                  type="button"
+                  onClick={validarDni}
+                  className="bg-blue-600 text-white px-3 rounded"
+                >
+                  {loadingDni ? "..." : "Validar"}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => window.location.reload()}
+                  className="bg-gray-600 text-white px-3 rounded"
+                >
+                  Limpiar
+                </button>
+              </>
+            )}
+          </div>
         </div>
 
-        {/* NOMBRE */}
+        {/* CAMPOS */}
         <input
           name="nombre"
           placeholder="Nombre"
@@ -192,7 +184,6 @@ export default function UsuarioForm({ usuario, onClose, onSaved }) {
           required
         />
 
-        {/* APELLIDO */}
         <input
           name="apellido"
           placeholder="Apellido"
@@ -202,7 +193,6 @@ export default function UsuarioForm({ usuario, onClose, onSaved }) {
           required
         />
 
-        {/* FECHA NAC */}
         <input
           type="date"
           name="fecha_nac"
@@ -211,7 +201,6 @@ export default function UsuarioForm({ usuario, onClose, onSaved }) {
           className="border p-2 rounded w-full"
         />
 
-        {/* HISTORIA */}
         <input
           name="nro_historia"
           placeholder="Nro Historia"
@@ -220,7 +209,6 @@ export default function UsuarioForm({ usuario, onClose, onSaved }) {
           className="border p-2 rounded w-full"
         />
 
-        {/* ROL */}
         <select
           name="rol"
           value={form.rol}
@@ -231,8 +219,7 @@ export default function UsuarioForm({ usuario, onClose, onSaved }) {
           <option value="admin">Administrador</option>
         </select>
 
-        {/* PASSWORD */}
-        {(!isEdit || dniStatus === "registrado") && (
+        {allowPassword && (
           <input
             name="password"
             type="password"
@@ -243,17 +230,24 @@ export default function UsuarioForm({ usuario, onClose, onSaved }) {
           />
         )}
 
-        {/* BOTONES */}
-        <div className="flex gap-2 mt-3">
-          <button type="submit" className="bg-green-600 text-white px-4 py-2 rounded">
-            {isEdit ? "Guardar cambios" : "Crear usuario"}
+        <div className="flex justify-end gap-2 mt-4">
+          <button
+            type="button"
+            onClick={onClose}
+            className="px-4 py-2 rounded bg-gray-400 text-white"
+          >
+            Cancelar
           </button>
-          <button type="button" onClick={onClose} className="bg-gray-400 text-white px-4 py-2 rounded">
-            Cerrar
+
+          <button
+            type="submit"
+            className="px-4 py-2 rounded bg-green-600 text-white"
+          >
+            {isEdit ? "Guardar" : "Crear"}
           </button>
         </div>
 
       </form>
-    </div>
+    </ModalUsuario>
   );
 }

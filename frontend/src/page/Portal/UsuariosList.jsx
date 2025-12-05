@@ -7,6 +7,8 @@ export default function UsuariosList() {
   const [usuarios, setUsuarios] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState(null);
+  const [openModal, setOpenModal] = useState(false);
+
 
   const cargarUsuarios = async () => {
     setLoading(true);
@@ -50,6 +52,7 @@ export default function UsuariosList() {
       {/* FORMULARIO MODAL */}
       {selected && (
         <UsuarioForm
+          open={true}
           usuario={selected}
           onClose={() => setSelected(null)}
           onSaved={() => {
@@ -58,6 +61,7 @@ export default function UsuariosList() {
           }}
         />
       )}
+
 
       {/* LOADING */}
       {loading ? (
