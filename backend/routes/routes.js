@@ -34,7 +34,7 @@ router.get(
   "/usuarios/buscar/:dni",
   authMiddleware,
   requireAdmin,
-  usuarioController.buscarPorDni
+  usuarioController.buscarPorDniAvanzado
 );
 router.put(
   "/usuarios/:id",
