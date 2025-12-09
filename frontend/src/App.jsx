@@ -13,6 +13,9 @@ import Resultados from "./page/Portal/Resultados";
 import PreguntasFrecuentes from "./page/FAQ";
 import UsuariosList from "./page/Portal/UsuariosList";
 
+import AutoRegistroInicio from "./auth/AutoRegistroInicio";
+import AutoRegistroConfirmar from "./auth/AutoRegistroConfirmar";
+
 export default function App() {
   const { usuario, rol, isLogged } = useAuth();
 
@@ -29,6 +32,9 @@ export default function App() {
         </Route>
 
         <Route path="/portal/login" element={<Login />} />
+        <Route path="autoregistro" element={<AutoRegistroInicio />} />
+        <Route path="autoregistro/confirmar" element={<AutoRegistroConfirmar />} />
+
         {/* PROTEGIDA */}
         <Route
           path="/portal/*"

@@ -204,6 +204,14 @@ export default function Login() {
             <button className="w-full bg-[#A63A3A] text-white py-2 rounded-md font-semibold hover:bg-[#8F2F2F] transition">
               Continuar
             </button>
+            <div className="mt-4 text-center">
+              <button
+                onClick={() => navigate("/autoregistro")}
+                className="px-4 py-2 text-sm rounded bg-gray-200 hover:bg-gray-300"
+              >
+                Registrarme
+              </button>
+            </div>
           </form>
         )}
 
