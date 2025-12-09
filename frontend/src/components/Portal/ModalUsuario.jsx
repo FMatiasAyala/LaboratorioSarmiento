@@ -1,5 +1,6 @@
 import * as Dialog from "@radix-ui/react-dialog";
 import { Toaster } from "react-hot-toast";
+
 export default function ModalUsuario({ open, onClose, children, title = "Modal" }) {
     return (
         <Dialog.Root open={open} onOpenChange={onClose}>
@@ -13,31 +14,37 @@ export default function ModalUsuario({ open, onClose, children, title = "Modal" 
             data-[state=closed]:animate-fade-out
           "
                 />
-                {/* CONTENIDO */}
-                <Dialog.Content
-                    aria-describedby={undefined}
-                    className="
-            fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2
-            w-full max-w-xl rounded-xl bg-white p-6 shadow-xl
-            data-[state=open]:animate-scale-in
-            data-[state=closed]:animate-scale-out
-          "
-                >
-                    <Toaster
-                        position="top-center"
-                        toastOptions={{
-                            duration: 3000,
-                            style: { fontSize: "15px" },
-                        }}
-                    />
-                    {/* REQUERIDO POR RADIX */}
-                    <Dialog.Title className="text-xl font-bold mb-4">
-                        {title}
-                    </Dialog.Title>
 
-                    {/* TU CONTENIDO */}
-                    {children}
-                </Dialog.Content>
+                {/* WRAPPER CENTRADO (SOLUCIONA EL PROBLEMA) */}
+                <div className="fixed inset-0 flex items-center justify-center p-4">
+
+                    <Dialog.Content
+                        aria-describedby={undefined}
+                        className="
+              w-full max-w-xl rounded-xl bg-white p-6 shadow-xl outline-none
+              data-[state=open]:animate-scale-in
+              data-[state=closed]:animate-scale-out
+            "
+                    >
+                        {/* TOASTER */}
+                        <Toaster
+                            position="top-center"
+                            toastOptions={{
+                                duration: 3000,
+                                style: { fontSize: "15px" },
+                            }}
+                        />
+
+                        {/* REQUERIDO POR RADIX */}
+                        <Dialog.Title className="text-xl font-bold mb-4">
+                            {title}
+                        </Dialog.Title>
+
+                        {/* CONTENIDO */}
+                        {children}
+                    </Dialog.Content>
+
+                </div>
 
             </Dialog.Portal>
         </Dialog.Root>

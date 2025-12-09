@@ -3,12 +3,12 @@ import { UsuariosAPI } from "../../../api/UsuariosAPI";
 import UsuarioForm from "./UsuarioForm";
 import ModalConfirm from "../../components/Portal/ModalConfirm";
 import { FaPlus, FaEdit, FaTrash } from "react-icons/fa";
+import toast from "react-hot-toast";
 
 export default function UsuariosList() {
   const [usuarios, setUsuarios] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState(null);
-  const [openModal, setOpenModal] = useState(false);
   const [deleteId, setDeleteId] = useState(null);
 
 
@@ -25,17 +25,16 @@ export default function UsuariosList() {
     cargarUsuarios();
   }, []);
 
-  const handleDelete = async (id) => {
-    if (!confirm("¿Seguro que querés eliminar este usuario?")) return;
-
-    const data = await UsuariosAPI.remove(id);
+  const handleDelete = async () => {
+    const data = await UsuariosAPI.remove(deleteId);
     if (data.ok) {
-      alert("Usuario eliminado");
+      toast.success("Usuario eliminado correctamente");
       cargarUsuarios();
     } else {
-      alert(data.error || "Error eliminando usuario");
+      toast.error(data.error || "No se pudo eliminar el usuario");
     }
-  };
+    setDeleteId(null);
+  }
 
   return (
     <div className="max-w-5xl mx-auto p-6">
@@ -70,16 +69,7 @@ export default function UsuariosList() {
           onClose={() => setDeleteId(null)}
           title="Eliminar usuario"
           message="¿Estás seguro que querés eliminar este usuario? Esta acción no se puede deshacer."
-          onConfirm={async () => {
-            const data = await UsuariosAPI.remove(deleteId);
-            if (data.ok) {
-              alert("Usuario eliminado");
-              cargarUsuarios();
-            } else {
-              alert(data.error || "Error eliminando usuario");
-            }
-            setDeleteId(null);
-          }}
+          onConfirm={handleDelete}
         />
       )}
 

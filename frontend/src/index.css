@@ -2,4 +2,75 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ========== BACKDROP UNIVERSAL ========== */
+.modal-backdrop {
+  @apply fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 animate-fade-in;
+}
 
+/* ========== CONTENEDOR UNIVERSAL DE MODAL ========== */
+.modal-content {
+  @apply bg-white rounded-xl shadow-xl p-6 animate-scale-in max-w-lg w-full;
+}
+
+/* ========== LOADING CARD ========== */
+.loading-card {
+  @apply bg-white px-8 py-6 rounded-xl shadow-xl flex flex-col items-center gap-4 animate-scale-in;
+}
+
+@layer utilities {
+  @keyframes fadeIn {
+    0% {
+      opacity: 0;
+    }
+    100% {
+      opacity: 1;
+    }
+  }
+
+  @keyframes fadeOut {
+    0% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 0;
+    }
+  }
+
+  @keyframes scaleIn {
+    0% {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+    100% {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  @keyframes scaleOut {
+    0% {
+      opacity: 1;
+      transform: scale(1);
+    }
+    100% {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+  }
+
+  .animate-fade-in {
+    animation: fadeIn 0.25s ease-out forwards;
+  }
+
+  .animate-fade-out {
+    animation: fadeOut 0.25s ease-in forwards;
+  }
+
+  .animate-scale-in {
+    animation: scaleIn 0.25s ease-out forwards;
+  }
+
+  .animate-scale-out {
+    animation: scaleOut 0.25s ease-in forwards;
+  }
+}

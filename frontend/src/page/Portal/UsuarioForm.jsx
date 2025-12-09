@@ -7,6 +7,7 @@ export default function UsuarioForm({ open, onClose, usuario, onSaved }) {
   const isEdit = !!usuario?.id;
   const [modo, setModo] = useState("crear");
 
+  const [msg, setMsg] = useState({ type: "", text: "" }); // 🔥 mensaje interno
 
   const [form, setForm] = useState({
     dni: "",
@@ -21,6 +22,21 @@ export default function UsuarioForm({ open, onClose, usuario, onSaved }) {
   const [loadingDni, setLoadingDni] = useState(false);
   const [dniStatus, setDniStatus] = useState(null);
   const [allowPassword, setAllowPassword] = useState(false);
+
+  // Limpia mensaje al cerrar modal
+  useEffect(() => {
+    if (!open) setMsg({ type: "", text: "" });
+  }, [open]);
+  // 🔥 AUTOFADE DEL MENSAJE (desaparece a los 3s)
+  useEffect(() => {
+    if (msg.text) {
+      const t = setTimeout(() => {
+        setMsg({ type: "", text: "" });
+      }, 3000);
+
+      return () => clearTimeout(t);
+    }
+  }, [msg]);
 
   // ============================
   // CARGAR DATOS SI EDITA
@@ -51,8 +67,10 @@ export default function UsuarioForm({ open, onClose, usuario, onSaved }) {
   // VALIDAR DNI
   // ============================
   const validarDni = async () => {
+    setMsg({}); // limpia mensaje
+
     if (!form.dni || form.dni.length < 6) {
-      toast.error("DNI inválido.");
+      setMsg({ type: "error", text: "DNI inválido." });
       setDniStatus("invalid");
       setModo("invalido");
       return;
@@ -65,15 +83,20 @@ export default function UsuarioForm({ open, onClose, usuario, onSaved }) {
     setLoadingDni(false);
 
     if (!data || data.ok === false) {
-      toast.error(data?.error || "Error validando DNI.");
+      setMsg({ type: "error", text: data?.error || "Error validando DNI." });
       setModo("invalido");
       return;
     }
 
     // 👉 NUEVO usuario
     if (!data.existe_mysql && data.existe_dbf) {
-      toast.success("Paciente encontrado. Datos importados.");
+      setMsg({
+        type: "success",
+        text: "Paciente encontrado. Datos importados.",
+      });
+
       setModo("crear");
+
       setForm((f) => ({
         ...f,
         nombre: data.usuario?.nombre || "",
@@ -83,6 +106,7 @@ export default function UsuarioForm({ open, onClose, usuario, onSaved }) {
           : "",
         nro_historia: data.usuario?.nro_historia || "",
       }));
+
       setAllowPassword(true);
       setDniStatus("nuevo");
       return;
@@ -90,8 +114,13 @@ export default function UsuarioForm({ open, onClose, usuario, onSaved }) {
 
     // 👉 USUARIO EXISTENTE
     if (data.existe_mysql) {
-      toast("El usuario ya está registrado.", { icon: "ℹ️" });
+      setMsg({
+        type: "info",
+        text: "Usuario encontrado. Se puede editar.",
+      });
+
       setModo("editar");
+
       setForm((f) => ({
         ...f,
         nombre: data.usuario?.nombre || "",
@@ -102,18 +131,21 @@ export default function UsuarioForm({ open, onClose, usuario, onSaved }) {
         nro_historia: data.usuario?.nro_historia || "",
         rol: data.usuario?.rol || "paciente",
       }));
+
       setAllowPassword(true);
       setDniStatus("registrado");
       return;
     }
 
-    // 👉 DNI NO EXISTE EN NINGUNA DB
-    toast.error("Este DNI no pertenece a ningún paciente.");
+    // 👉 DNI NO EXISTE
+    setMsg({
+      type: "error",
+      text: "El DNI no pertenece a ningún paciente.",
+    });
+
     setModo("invalido");
     setDniStatus("no-paciente");
   };
-
-
 
   const limpiarDatos = () => {
     setForm({
@@ -125,10 +157,11 @@ export default function UsuarioForm({ open, onClose, usuario, onSaved }) {
       rol: "paciente",
       password: "",
     });
+    setMsg({});
     setDniStatus(null);
     setAllowPassword(false);
     setModo("crear");
-  }
+  };
 
   // ============================
   // SUBMIT
@@ -138,13 +171,22 @@ export default function UsuarioForm({ open, onClose, usuario, onSaved }) {
 
     if (!isEdit) {
       if (!dniStatus || dniStatus === "checking") {
-        return toast.error("Primero debe validar el DNI.");
+        return setMsg({
+          type: "error",
+          text: "Primero debe validar el DNI.",
+        });
       }
       if (dniStatus === "no-paciente") {
-        return toast.error("DNI no válido para registro.");
+        return setMsg({
+          type: "error",
+          text: "DNI no válido para registro.",
+        });
       }
       if (allowPassword && form.password.trim() === "") {
-        return toast.error("Debe ingresar una contraseña.");
+        return setMsg({
+          type: "error",
+          text: "Debe ingresar una contraseña.",
+        });
       }
     }
 
@@ -157,17 +199,49 @@ export default function UsuarioForm({ open, onClose, usuario, onSaved }) {
       onSaved();
       onClose();
     } else {
-      toast.error(data.error || "Error al guardar");
+      setMsg({
+        type: "error",
+        text: data.error || "Error al guardar.",
+      });
     }
   };
 
-  // ============================
-  // RENDER
-  // ============================
+  // ======================================================
+  // COMPONENTE JSX
+  // ======================================================
   return (
-    <ModalUsuario open={open}
-      onClose={onClose}
-      title={isEdit ? "Editar Usuario" : "Crear Usuario"}>
+    <ModalUsuario open={open} onClose={onClose} title={
+      isEdit ? "Editar Usuario" :
+        modo === "editar" ? "Editar Usuario" :
+          "Crear Usuario"
+    }>
+
+      {/* 🔥 mensaje interno dentro del modal */}
+      {msg.text && (
+        <div
+          className={`
+      flex items-center gap-3 p-3 mb-4 rounded-lg border text-sm animate-fade-in
+      ${msg.type === "success"
+              ? "bg-green-50 text-green-700 border-green-300"
+              : msg.type === "error"
+                ? "bg-red-50 text-red-700 border-red-300"
+                : "bg-blue-50 text-blue-700 border-blue-300"
+            }
+    `}
+        >
+          {/* ICONO */}
+          <span className="text-lg">
+            {msg.type === "success" && "✔️"}
+            {msg.type === "error" && "❌"}
+            {msg.type === "info" && "ℹ️"}
+          </span>
+
+          {/* TEXTO */}
+          <span>{msg.text}</span>
+        </div>
+      )}
+
+
       <form onSubmit={submit} className="space-y-3">
 
         {/* DNI */}
@@ -205,7 +279,7 @@ export default function UsuarioForm({ open, onClose, usuario, onSaved }) {
           </div>
         </div>
 
-        {/* CAMPOS */}
+        {/* RESTO DE CAMPOS */}
         <input
           name="nombre"
           placeholder="Nombre"
@@ -282,11 +356,8 @@ export default function UsuarioForm({ open, onClose, usuario, onSaved }) {
               ? "Guardar"
               : modo === "editar"
                 ? "Editar"
-                : modo === "crear"
-                  ? "Crear"
-                  : "..."}
+                : "Crear"}
           </button>
-
         </div>
 
       </form>

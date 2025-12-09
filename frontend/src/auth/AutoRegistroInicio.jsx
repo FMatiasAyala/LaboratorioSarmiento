@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import toast from "react-hot-toast";
+import LoadingModal from "../components/Portal/LoadingModal";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -34,8 +35,6 @@ export default function AutoRegistroInicio() {
       if (!data.ok) return toast.error(data.error || "No se pudo iniciar el registro.");
 
       toast.success("Correo enviado. Revise su casilla.");
-      
-      // Redirige al paso 2
       window.location.href = "/autoregistro/confirmar";
 
     } catch (err) {
@@ -46,51 +45,54 @@ export default function AutoRegistroInicio() {
   };
 
   return (
-    <div className="max-w-md mx-auto mt-16 bg-white shadow-lg p-6 rounded-lg">
+    <>
+      {/* 🔥 Modal de carga */}
+      <LoadingModal open={loading} mensaje="Enviando correo..." />
 
-      <h1 className="text-2xl font-bold mb-4 text-center text-[#A63A3A]">
-        Auto Registro de Pacientes
-      </h1>
+      <div className="max-w-md mx-auto mt-16 bg-white shadow-lg p-6 rounded-lg">
 
-      <p className="text-gray-700 mb-4">
-        Ingrese su DNI para comenzar el proceso de creación de cuenta.
-      </p>
+        <h1 className="text-2xl font-bold mb-4 text-center text-[#A63A3A]">
+          Auto Registro de Pacientes
+        </h1>
 
-      <form className="space-y-4" onSubmit={enviar}>
-        
-        {/* DNI */}
-        <div>
-          <label className="font-medium">DNI</label>
-          <input
-            type="text"
-            value={dni}
-            onChange={(e) => setDni(e.target.value)}
-            className="border rounded w-full p-2"
-            placeholder="Ej: 12345678"
-          />
-        </div>
+        <p className="text-gray-700 mb-4">
+          Ingrese su DNI para comenzar el proceso de creación de cuenta.
+        </p>
 
-        {/* Términos */}
-        <label className="flex items-start gap-2 cursor-pointer">
-          <input
-            type="checkbox"
-            checked={acepta}
-            onChange={(e) => setAcepta(e.target.checked)}
-          />
-          <span className="text-gray-700">
-            Acepto los <b>términos y condiciones</b> del servicio.
-          </span>
-        </label>
+        <form className="space-y-4" onSubmit={enviar}>
+          
+          <div>
+            <label className="font-medium">DNI</label>
+            <input
+              type="text"
+              value={dni}
+              onChange={(e) => setDni(e.target.value)}
+              className="border rounded w-full p-2"
+              placeholder="Ej: 12345678"
+            />
+          </div>
 
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full bg-[#A63A3A] text-white py-2 rounded mt-4 hover:bg-[#8F2F2F] transition disabled:opacity-50"
-        >
-          {loading ? "Enviando..." : "Continuar"}
-        </button>
+          <label className="flex items-start gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={acepta}
+              onChange={(e) => setAcepta(e.target.checked)}
+            />
+            <span className="text-gray-700">
+              Acepto los <b>términos y condiciones</b> del servicio.
+            </span>
+          </label>
 
-      </form>
-    </div>
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-[#A63A3A] text-white py-2 rounded mt-4 hover:bg-[#8F2F2F] transition disabled:opacity-50"
+          >
+            Continuar
+          </button>
+
+        </form>
+      </div>
+    </>
   );
 }

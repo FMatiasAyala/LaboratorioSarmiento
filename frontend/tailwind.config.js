@@ -2,8 +2,9 @@
 export default {
   content: [
     "./index.html",
-    "./src/**/*.{js,jsx,ts,tsx}", // 👈 importantísimo
+    "./src/**/*.{js,jsx,ts,tsx}",
   ],
+
   theme: {
     extend: {
       colors: {
@@ -18,11 +19,13 @@ export default {
           700: "#772626",
           800: "#5F1E1E",
           900: "#461616",
-        }, // rojo principal
-        secondary: "#bfbfbf", // gris claro
-        dark: "#6c6c6c", // gris oscuro
-        light: "#f5f5f5", // blanco cálido
+        },
+        secondary: "#bfbfbf",
+        dark: "#6c6c6c",
+        light: "#f5f5f5",
       },
+
+      /* 🔥 ANIMACIONES PERSONALIZADAS */
       keyframes: {
         fadeIn: {
           "0%": { opacity: "0" },
@@ -45,6 +48,7 @@ export default {
           "100%": { opacity: "1", transform: "translateY(0)" },
         },
       },
+
       animation: {
         "fade-in": "fadeIn .2s ease-out",
         "fade-out": "fadeOut .2s ease-in",
@@ -54,5 +58,6 @@ export default {
       },
     },
   },
+
   plugins: [],
 };
