@@ -7,10 +7,14 @@ const authMiddleware = require("../middlewares/authMiddleware");
 const usuarioController = require("../controllers/usuarioController");
 const requireAdmin = require("../middlewares/requireAdmin");
 const mailerController = require("../controllers/mailerController");
-
+const autoRegistroController = require("../controllers/autoregistroController");
 
 router.post("/enviar-token", mailerController.enviarToken);
 router.post("/validar-token", mailerController.validarToken);
+
+router.post("/iniciar", autoRegistroController.iniciar);
+router.get("/confirmar/:token", autoRegistroController.confirmar);
+router.post("/finalizar", autoRegistroController.finalizar);
 
 router.post("/login", authController.login);
 router.post("/verificar-dni", authController.verificarDni);
