@@ -3,26 +3,23 @@ const cors = require("cors");
 const routerLab = require("./routes/routes");
 require("dotenv").config();
 const app = express();
+
 const allowedOrigins = [
-  "http://localhost:5173", // Front local
-  "https://bulonxpress.online", // Front producción
+  "http://localhost:5174",
+  "http://127.0.0.1:5174",
+  "https://bulonxpress.online",
   "https://www.bulonxpress.online",
-  "https://portal.bulonxpress.online", // si usás subdominio
+  "https://portal.bulonxpress.online"
 ];
 
 app.use(
   cors({
-    origin: function (origin, callback) {
-      // Permitir Postman, curl, etc (sin origin)
+    origin(origin, callback) {
       if (!origin) return callback(null, true);
-
       if (allowedOrigins.includes(origin)) {
         return callback(null, true);
       }
-
-      // ❗ No tiramos error porque rompe el preflight
-      console.warn("CORS bloqueado para origen:", origin);
-      return callback(null, false); 
+      return callback(new Error("CORS bloqueado para: " + origin));
     },
     methods: ["GET", "POST", "PUT", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"],
