@@ -169,13 +169,14 @@ exports.finalizar = async (req, res) => {
   const hash = await bcrypt.hash(password, 10);
 
   await pool.query(
-    `INSERT INTO usuarios (dni, nombre, apellido, fecha_nac, mail, password, rol)
-     VALUES (?, ?, ?, ?, ?, ?, ?)`,
+    `INSERT INTO usuarios (dni, nombre, apellido, fecha_nac, nro_historia,  email, password_hash, rol)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       registro.dni,
       paciente.nompac,
       paciente.apellido,
       fechaNac,
+      paciente.codigo,
       paciente.email,
       hash,
       "paciente",
