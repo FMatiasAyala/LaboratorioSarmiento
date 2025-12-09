@@ -25,10 +25,10 @@ export default function App() {
           <Route index element={<Home />} />
           <Route path="inicio" element={<Home />} />
           <Route path="pacientes/preguntas" element={<PreguntasFrecuentes />} />
+
         </Route>
 
         <Route path="/portal/login" element={<Login />} />
-
         {/* PROTEGIDA */}
         <Route
           path="/portal/*"
@@ -61,6 +61,7 @@ export default function App() {
             }
           />
         </Route>
+
 
         <Route path="*" element={<NotFound />} />
       </Routes>

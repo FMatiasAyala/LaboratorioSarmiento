@@ -31,7 +31,9 @@ export default function UsuarioForm({ open, onClose, usuario, onSaved }) {
         dni: usuario.dni,
         nombre: usuario.nombre,
         apellido: usuario.apellido,
-        fecha_nac: usuario.fecha_nac || "",
+        fecha_nac: usuario.fecha_nac
+          ? usuario.fecha_nac.split("T")[0]
+          : "",
         nro_historia: usuario.nro_historia || "",
         rol: usuario.rol || "paciente",
         password: "",
@@ -76,7 +78,9 @@ export default function UsuarioForm({ open, onClose, usuario, onSaved }) {
         ...f,
         nombre: data.usuario?.nombre || "",
         apellido: data.usuario?.apellido || "",
-        fecha_nac: data.usuario?.fecha_nac || "",
+        fecha_nac: data.usuario?.fecha_nac
+          ? new Date(data.usuario.fecha_nac).toISOString().split("T")[0]
+          : "",
         nro_historia: data.usuario?.nro_historia || "",
       }));
       setAllowPassword(true);
@@ -92,7 +96,9 @@ export default function UsuarioForm({ open, onClose, usuario, onSaved }) {
         ...f,
         nombre: data.usuario?.nombre || "",
         apellido: data.usuario?.apellido || "",
-        fecha_nac: data.usuario?.fecha_nac || "",
+        fecha_nac: data.usuario?.fecha_nac
+          ? new Date(data.usuario.fecha_nac).toISOString().split("T")[0]
+          : "",
         nro_historia: data.usuario?.nro_historia || "",
         rol: data.usuario?.rol || "paciente",
       }));
@@ -268,8 +274,8 @@ export default function UsuarioForm({ open, onClose, usuario, onSaved }) {
             type="submit"
             disabled={modo === "invalido"}
             className={`px-4 py-2 rounded text-white ${modo === "invalido"
-                ? "bg-gray-400 cursor-not-allowed"
-                : "bg-green-600 hover:bg-green-700"
+              ? "bg-gray-400 cursor-not-allowed"
+              : "bg-green-600 hover:bg-green-700"
               }`}
           >
             {isEdit
