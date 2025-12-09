@@ -6,6 +6,11 @@ const pacientesController = require("../controllers/pacientesController");
 const authMiddleware = require("../middlewares/authMiddleware");
 const usuarioController = require("../controllers/usuarioController");
 const requireAdmin = require("../middlewares/requireAdmin");
+const mailerController = require("../controllers/mailerController");
+
+
+router.post("/enviar-token", mailerController.enviarToken);
+router.post("/validar-token", mailerController.validarToken);
 
 router.post("/login", authController.login);
 router.post("/verificar-dni", authController.verificarDni);
