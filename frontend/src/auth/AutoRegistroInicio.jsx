@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import toast from "react-hot-toast";
 import LoadingModal from "../components/Portal/LoadingModal";
+import { useNavigate } from "react-router-dom";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -8,7 +9,7 @@ export default function AutoRegistroInicio() {
   const [dni, setDni] = useState("");
   const [acepta, setAcepta] = useState(false);
   const [loading, setLoading] = useState(false);
-
+  const navigate = useNavigate();
   const enviar = async (e) => {
     e.preventDefault();
 
@@ -60,7 +61,7 @@ export default function AutoRegistroInicio() {
         </p>
 
         <form className="space-y-4" onSubmit={enviar}>
-          
+
           <div>
             <label className="font-medium">DNI</label>
             <input
@@ -89,6 +90,14 @@ export default function AutoRegistroInicio() {
             className="w-full bg-[#A63A3A] text-white py-2 rounded mt-4 hover:bg-[#8F2F2F] transition disabled:opacity-50"
           >
             Continuar
+          </button>
+
+          <button
+            type="button"
+            className="underline text-gray-600 w-full mt-2"
+            onClick={() => navigate("/portal/login")}
+          >
+            Volver atrás
           </button>
 
         </form>
