@@ -5,7 +5,6 @@ import toast from "react-hot-toast";
 const API_URL = import.meta.env.VITE_API_URL;
 
 export default function AutoRegistroConfirmar() {
-  const [params] = useSearchParams();
   const navigate = useNavigate();
   const { token } = useParams();
 
