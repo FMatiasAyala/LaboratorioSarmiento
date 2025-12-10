@@ -34,8 +34,6 @@ export default function Resultados() {
       try {
         setLoading(true);
         setError("");
-        console.log("Consultando resultados para historia:", usuario.nro_historia);
-        console.log("Usando token:", token);
         const resp = await fetch(
           `${API_URL}/api/resultados/${usuario.nro_historia}`,
           {
@@ -47,7 +45,7 @@ export default function Resultados() {
         );
 
         const data = await resp.json();
-
+        
         if (!resp.ok) {
           throw new Error(data.error || "Error al consultar resultados");
         }
@@ -139,6 +137,7 @@ export default function Resultados() {
           <table className="min-w-full text-sm">
             <thead className="bg-gray-100 border-b">
               <tr>
+                <th className="text-left px-4 py-2">Fecha</th>
                 <th className="text-left px-4 py-2">N.º de ingreso</th>
                 <th className="text-left px-4 py-2">Estado</th>
                 <th className="text-left px-4 py-2">Acciones</th>
@@ -147,6 +146,7 @@ export default function Resultados() {
             <tbody>
               {ingresos.map((item) => (
                 <tr key={item.ingreso} className="border-b last:border-0">
+                  <td className="px-4 py-2">{item.fecha ? item.fecha.split("T")[0] : "—"}</td>
                   <td className="px-4 py-2">{item.ingreso}</td>
                   <td className="px-4 py-2">
                     {item.estado_nombre ? item.estado_nombre.trim() : item.estado}
