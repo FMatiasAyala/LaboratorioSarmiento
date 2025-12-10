@@ -13,7 +13,7 @@ router.post("/enviar-token", mailerController.enviarToken);
 router.post("/validar-token", mailerController.validarToken);
 
 router.post("/iniciar", autoRegistroController.iniciar);
-router.get("/confirmar/:token", autoRegistroController.confirmar);
+router.get("/confirmar/:idPublico", autoRegistroController.confirmar);
 router.post("/finalizar", autoRegistroController.finalizar);
 
 router.post("/login", authController.login);
