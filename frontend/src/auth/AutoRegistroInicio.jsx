@@ -25,7 +25,7 @@ export default function AutoRegistroInicio() {
     setLoading(true);
 
     try {
-      const resp = await fetch(`${API_URL}/api/iniciar`, {
+      const resp = await fetch(`${API_URL}/api/registro/iniciar`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ dni, acepta }),

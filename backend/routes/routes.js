@@ -12,9 +12,9 @@ const autoRegistroController = require("../controllers/autoregistroController");
 router.post("/enviar-token", mailerController.enviarToken);
 router.post("/validar-token", mailerController.validarToken);
 
-router.post("/iniciar", autoRegistroController.iniciar);
-router.get("/confirmar/:idPublico", autoRegistroController.confirmar);
-router.post("/finalizar", autoRegistroController.finalizar);
+router.post("/registro/iniciar", autoRegistroController.iniciar);
+router.get("/registro/verificar/:idPublico", autoRegistroController.confirmar);
+router.post("/registro/finalizar", autoRegistroController.finalizar);
 
 router.post("/login", authController.login);
 router.post("/verificar-dni", authController.verificarDni);
