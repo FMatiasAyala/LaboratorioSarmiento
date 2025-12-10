@@ -33,7 +33,7 @@ export default function App() {
 
         <Route path="/portal/login" element={<Login />} />
         <Route path="autoregistro" element={<AutoRegistroInicio />} />
-        <Route path="registro/verificar/:token" element={<AutoRegistroConfirmar />} />
+        <Route path="registro/verificar/:idPublico" element={<AutoRegistroConfirmar />} />
 
         {/* PROTEGIDA */}
         <Route
