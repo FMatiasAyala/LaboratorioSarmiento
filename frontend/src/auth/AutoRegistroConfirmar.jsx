@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useSearchParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 
 const API_URL = import.meta.env.VITE_API_URL;
@@ -7,9 +7,9 @@ const API_URL = import.meta.env.VITE_API_URL;
 export default function AutoRegistroConfirmar() {
   const [params] = useSearchParams();
   const navigate = useNavigate();
+  const { token } = useParams();
 
-  const token = params.get("token");
-
+  const [email, setEmail] = useState(null);
   const [dni, setDni] = useState(null);
   const [loading, setLoading] = useState(true);
   const [password, setPassword] = useState("");
@@ -18,6 +18,12 @@ export default function AutoRegistroConfirmar() {
   const maskDni = (dni) => {
     if (!dni) return "";
     return dni.slice(0, dni.length - 2) + "**";
+  };
+  const maskMail = (email) => {
+    if (!email) return ""; 
+    const [user, domain] = email.split("@");
+    const maskedUser = user[0] + "***" + user.slice(-1);
+    return maskedUser + "@" + domain;
   };
 
   useEffect(() => {
@@ -30,7 +36,7 @@ export default function AutoRegistroConfirmar() {
         setLoading(false);
         return;
       }
-
+      setEmail(data.email);
       setDni(data.dni);
       setLoading(false);
     };
@@ -80,6 +86,7 @@ export default function AutoRegistroConfirmar() {
       <h1 className="text-xl font-bold mb-4 text-center">Crear Contraseña</h1>
 
       <p className="text-gray-700 mb-4">
+        E-MAIL asociado: <strong>{maskMail(email)}</strong>
         DNI asociado: <strong>{maskDni(dni)}</strong>
       </p>
 

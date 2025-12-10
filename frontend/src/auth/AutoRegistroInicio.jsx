@@ -9,6 +9,7 @@ export default function AutoRegistroInicio() {
   const [dni, setDni] = useState("");
   const [acepta, setAcepta] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [step, setStep] = useState(1);
   const navigate = useNavigate();
   const enviar = async (e) => {
     e.preventDefault();
@@ -36,8 +37,7 @@ export default function AutoRegistroInicio() {
       if (!data.ok) return toast.error(data.error || "No se pudo iniciar el registro.");
 
       toast.success("Correo enviado. Revise su casilla.");
-      window.location.href = "/autoregistro/confirmar";
-
+      setStep(2);
     } catch (err) {
       setLoading(false);
       toast.error("Error de red. Intente más tarde.");
@@ -50,47 +50,71 @@ export default function AutoRegistroInicio() {
       {/* 🔥 Modal de carga */}
       <LoadingModal open={loading} mensaje="Enviando correo..." />
 
-      <div className="max-w-md mx-auto mt-16 bg-white shadow-lg p-6 rounded-lg">
+      {step === 1 && (
+        <div className="max-w-md mx-auto mt-16 bg-white shadow-lg p-6 rounded-lg">
 
-        <h1 className="text-2xl font-bold mb-4 text-center text-[#A63A3A]">
-          Auto Registro de Pacientes
-        </h1>
+          <h1 className="text-2xl font-bold mb-4 text-center text-[#A63A3A]">
+            Auto Registro de Pacientes
+          </h1>
 
-        <p className="text-gray-700 mb-4">
-          Ingrese su DNI para comenzar el proceso de creación de cuenta.
-        </p>
+          <p className="text-gray-700 mb-4">
+            Ingrese su DNI para comenzar el proceso de creación de cuenta.
+          </p>
 
-        <form className="space-y-4" onSubmit={enviar}>
+          <form className="space-y-4" onSubmit={enviar}>
 
-          <div>
-            <label className="font-medium">DNI</label>
-            <input
-              type="text"
-              value={dni}
-              onChange={(e) => setDni(e.target.value)}
-              className="border rounded w-full p-2"
-              placeholder="Ej: 12345678"
-            />
-          </div>
+            <div>
+              <label className="font-medium">DNI</label>
+              <input
+                type="text"
+                value={dni}
+                onChange={(e) => setDni(e.target.value)}
+                className="border rounded w-full p-2"
+                placeholder="Ej: 12345678"
+              />
+            </div>
 
-          <label className="flex items-start gap-2 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={acepta}
-              onChange={(e) => setAcepta(e.target.checked)}
-            />
-            <span className="text-gray-700">
-              Acepto los <b>términos y condiciones</b> del servicio.
-            </span>
-          </label>
+            <label className="flex items-start gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={acepta}
+                onChange={(e) => setAcepta(e.target.checked)}
+              />
+              <span className="text-gray-700">
+                Acepto los <b>términos y condiciones</b> del servicio.
+              </span>
+            </label>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-[#A63A3A] text-white py-2 rounded mt-4 hover:bg-[#8F2F2F] transition disabled:opacity-50"
-          >
-            Continuar
-          </button>
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-[#A63A3A] text-white py-2 rounded mt-4 hover:bg-[#8F2F2F] transition disabled:opacity-50"
+            >
+              Continuar
+            </button>
+
+            <button
+              type="button"
+              className="underline text-gray-600 w-full mt-2"
+              onClick={() => navigate("/portal/login")}
+            >
+              Volver atrás
+            </button>
+
+          </form>
+        </div>)}
+      {step === 2 && (
+        <div className="max-w-md mx-auto mt-16 bg-white shadow-lg p-6 rounded-lg">
+
+          <h1 className="text-2xl font-bold mb-4 text-center text-[#A63A3A]">
+            ¡Correo enviado con éxito!
+          </h1>
+
+          <p className="text-gray-700 mb-4">
+            Te enviamos un enlace de verificación a tu casilla de correo electrónico.
+            <br /><br />
+            Por favor, revisá tu bandeja de entrada y, si no lo ves, también la carpeta de spam o correo no deseado.
+          </p>
 
           <button
             type="button"
@@ -99,9 +123,8 @@ export default function AutoRegistroInicio() {
           >
             Volver atrás
           </button>
-
-        </form>
-      </div>
+        </div>
+      )}
     </>
   );
 }
