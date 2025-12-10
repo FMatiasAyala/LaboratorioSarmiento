@@ -23,7 +23,7 @@ function limpiarCampos(obj) {
 /* ---------------------------------------------------
    📧 FUNCIÓN ENVIAR CORREO
 --------------------------------------------------- */
-async function enviarCorreo(destino, token) {
+async function enviarCorreo(destino, idPublico) {
   const transporter = nodemailer.createTransport({
     host: process.env.MAIL_HOST,
     port: process.env.MAIL_PORT,
@@ -34,7 +34,8 @@ async function enviarCorreo(destino, token) {
     },
   });
 
-  const url = `${FRONT_URL}/autoregistro/confirmar?token=${token}`;
+  // NUEVA URL limpia y segura
+  const url = `${FRONT_URL}/registro/verificar/${idPublico}`;
 
   await transporter.sendMail({
     from: `"Laboratorio" <${process.env.MAIL_USER}>`,
@@ -42,7 +43,7 @@ async function enviarCorreo(destino, token) {
     subject: "Confirmación de registro",
     html: `
       <h2>Confirmación de registro</h2>
-      <p>Para continuar, haga clic en el siguiente enlace:</p>
+      <p>Para continuar con el registro, haga clic en el siguiente enlace:</p>
       <p><a href="${url}">${url}</a></p>
       <p>Este enlace expirará en 24 horas.</p>
     `,
@@ -56,7 +57,10 @@ exports.iniciar = async (req, res) => {
   const { dni, acepta } = req.body;
 
   if (!acepta) {
-    return res.json({ ok: false, error: "Debe aceptar los términos y condiciones." });
+    return res.json({
+      ok: false,
+      error: "Debe aceptar los términos y condiciones.",
+    });
   }
 
   try {
@@ -65,7 +69,10 @@ exports.iniciar = async (req, res) => {
     let paciente = await resp.json();
 
     if (!paciente || !paciente.ndoc) {
-      return res.json({ ok: false, error: "El DNI no pertenece a ningún paciente." });
+      return res.json({
+        ok: false,
+        error: "El DNI no pertenece a ningún paciente.",
+      });
     }
 
     paciente = limpiarCampos(paciente);
@@ -73,7 +80,8 @@ exports.iniciar = async (req, res) => {
     if (!paciente.email) {
       return res.json({
         ok: false,
-        error: "El paciente no tiene correo registrado. Debe actualizarlo en recepción.",
+        error:
+          "El paciente no tiene correo registrado. Debe actualizarlo en recepción.",
       });
     }
 
@@ -91,18 +99,28 @@ exports.iniciar = async (req, res) => {
     }
 
     // Crear token
-    const token = crypto.randomBytes(32).toString("hex");
+    const idPublico = crypto.randomBytes(5).toString("hex").toUpperCase();
+    const tokenReal = crypto.randomBytes(32).toString("hex");
+    const tokenHash = crypto
+      .createHash("sha256")
+      .update(tokenReal)
+      .digest("hex");
+
     const expires = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
+    // Guardar SOLO hash
     await pool.query(
-      "INSERT INTO usuario_autoreg_tokens (dni, token, expires_at) VALUES (?, ?, ?)",
-      [dni, token, expires]
+      `INSERT INTO usuario_autoreg_tokens (id_publico, token_hash, dni, expires_at)
+   VALUES (?, ?, ?, ?)`,
+      [idPublico, tokenHash, dni, expires]
     );
 
-    await enviarCorreo(paciente.email, token);
+    await enviarCorreo(paciente.email, idPublico);
 
-    return res.json({ ok: true, mensaje: "Se envió un correo de confirmación." });
-
+    return res.json({
+      ok: true,
+      mensaje: "Se envió un correo de confirmación.",
+    });
   } catch (err) {
     console.error("ERROR INICIAR AUTOREGISTRO:", err);
     res.status(500).json({ ok: false, error: "Error interno del servidor." });
@@ -113,11 +131,11 @@ exports.iniciar = async (req, res) => {
    2️⃣  CONFIRMAR TOKEN
 ========================================================= */
 exports.confirmar = async (req, res) => {
-  const { token } = req.params;
+  const { idPublico } = req.params;
 
   const [rows] = await pool.query(
-    "SELECT * FROM usuario_autoreg_tokens WHERE token = ? AND used = 0 LIMIT 1",
-    [token]
+    "SELECT * FROM usuario_autoreg_tokens WHERE id_publico = ? AND used = 0 LIMIT 1",
+    [idPublico]
   );
 
   if (rows.length === 0) {
@@ -135,15 +153,15 @@ exports.confirmar = async (req, res) => {
    3️⃣  FINALIZAR REGISTRO
 ========================================================= */
 exports.finalizar = async (req, res) => {
-  const { token, password } = req.body;
+  const { idPublico, password } = req.body;
 
   if (!password) {
     return res.json({ ok: false, error: "Debe ingresar una contraseña." });
   }
 
   const [rows] = await pool.query(
-    "SELECT * FROM usuario_autoreg_tokens WHERE token = ? AND used = 0 LIMIT 1",
-    [token]
+    "SELECT * FROM usuario_autoreg_tokens WHERE id_publico = ? AND used = 0 LIMIT 1",
+    [idPublico]
   );
 
   if (rows.length === 0) {
@@ -153,7 +171,9 @@ exports.finalizar = async (req, res) => {
   const registro = rows[0];
 
   // Buscar paciente real
-  const resp = await fetch(`${LAB_API}/api/pacientes/${registro.dni}?key=${LAB_KEY}`);
+  const resp = await fetch(
+    `${LAB_API}/api/pacientes/${registro.dni}?key=${LAB_KEY}`
+  );
   let paciente = await resp.json();
 
   if (!paciente || !paciente.ndoc) {
@@ -169,7 +189,7 @@ exports.finalizar = async (req, res) => {
   const hash = await bcrypt.hash(password, 10);
 
   await pool.query(
-    `INSERT INTO usuarios (dni, nombre, apellido, fecha_nac, nro_historia,  email, password_hash, rol)
+    `INSERT INTO usuarios (dni, nombre, apellido, fecha_nac, nro_historia, email, password_hash, rol)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       registro.dni,
@@ -183,10 +203,10 @@ exports.finalizar = async (req, res) => {
     ]
   );
 
-  await pool.query("UPDATE usuario_autoreg_tokens SET used = 1 WHERE token = ?", [
-    token,
-  ]);
+  await pool.query(
+    "UPDATE usuario_autoreg_tokens SET used = 1 WHERE id_publico = ?",
+    [idPublico]
+  );
 
   return res.json({ ok: true, mensaje: "Registro completado." });
 };
-
