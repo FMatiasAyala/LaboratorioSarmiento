@@ -10,6 +10,7 @@ const inactive =
 export default function Navbar() {
   const [open, setOpen] = useState(false)
   const location = useLocation()
+  const [openSub, setOpenSub] = useState(null);
 
   const handleInicioClick = () => {
     if (location.pathname === "/inicio") {
@@ -46,59 +47,60 @@ export default function Navbar() {
   return (
     <header className="sticky top-0 z-50 w-full bg-white shadow-md">
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
-        <Link to="/" className="text-white font-bold tracking-wide">
-          <img src="/logos/logo2.jpg" className="w-30 h-10 " />
+        <Link to="/" className="font-bold tracking-wide">
+          <img src="/logos/logo2.jpg" className="w-30 h-10" />
         </Link>
 
-        {/* Desktop */}
+        {/* ===== DESKTOP ===== */}
         <nav className="hidden md:flex items-center gap-4 relative">
           {links.map(({ to, label }) => {
             const submenu = subMenus[label]
 
-            // Si tiene submenú
             if (submenu) {
+              const isParentActive = submenu.some((s) =>
+                location.pathname.startsWith(s.to)
+              )
+
               return (
-                <div className="relative group">
-                  <NavLink
-                    to={to}
-                    className={({ isActive }) =>
-                      [base, isActive ? active : inactive].join(" ")
-                    }
+                <div key={label} className="relative group">
+                  <button
+                    type="button"
+                    aria-haspopup="true"
+                    aria-expanded={isParentActive}
+                    className={[
+                      base,
+                      isParentActive ? active : inactive,
+                    ].join(" ")}
                   >
                     {label}
-                    {submenu && <span className="ml-1 text-xs">▾</span>}
-                  </NavLink>
+                    <span className="ml-1 text-xs">▾</span>
+                  </button>
 
-                  {submenu && (
-                    <div
-                      className="invisible absolute left-0 top-full z-40 flex min-w-[200px] flex-col rounded-md bg-white/95 text-[#333] shadow-lg opacity-0 transition-all duration-150 group-hover:visible group-hover:opacity-100"
-                      // este padding superior de 0.5rem crea la "zona puente" del hover
-                      style={{ paddingTop: "0.5rem" }}
-                    >
-                      {submenu.map(({ to, label }) => (
-                        <NavLink
-                          key={to}
-                          to={to}
-                          className={({ isActive }) =>
-                            [
-                              "px-4 py-2 text-sm font-medium transition whitespace-nowrap",
-                              isActive
-                                ? "bg-[#A63A3A] text-white"
-                                : "hover:bg-[#f1f1f1]",
-                            ].join(" ")
-                          }
-                        >
-                          {label}
-                        </NavLink>
-                      ))}
-                    </div>
-                  )}
+                  <div
+                    className="invisible absolute left-0 top-full z-40 flex min-w-[200px] flex-col rounded-md bg-white/95 text-[#333] shadow-lg opacity-0 transition-all duration-150 group-hover:visible group-hover:opacity-100"
+                    style={{ paddingTop: "0.5rem" }}
+                  >
+                    {submenu.map(({ to, label }) => (
+                      <NavLink
+                        key={to}
+                        to={to}
+                        className={({ isActive }) =>
+                          [
+                            "px-4 py-2 text-sm font-medium transition whitespace-nowrap",
+                            isActive
+                              ? "bg-[#A63A3A] text-white"
+                              : "hover:bg-[#f1f1f1]",
+                          ].join(" ")
+                        }
+                      >
+                        {label}
+                      </NavLink>
+                    ))}
+                  </div>
                 </div>
-
               )
             }
 
-            // Sin submenú
             return (
               <NavLink
                 key={to}
@@ -114,43 +116,95 @@ export default function Navbar() {
           })}
         </nav>
 
-        {/* Mobile toggle */}
+        {/* ===== MOBILE TOGGLE ===== */}
         <button
           className="md:hidden text-[#a63a3a] text-2xl"
-          onClick={() => setOpen((v) => !v)}
           aria-label="Abrir menú"
+          onClick={() => {
+            setOpen((v) => !v)
+            setOpenSub(null)
+          }}
         >
           ☰
         </button>
       </div>
 
-      {/* Mobile */}
+      {/* ===== MOBILE ===== */}
       {open && (
         <div className="md:hidden bg-[#a63a3a] border-t border-white/10">
           <nav className="container mx-auto flex flex-col px-4 py-3 gap-2">
-            {links.map(({ to, label }) => (
-              <NavLink
-                key={to}
-                to={to}
-                onClick={() => {
-                  if (label === "Inicio" && location.pathname === "/inicio") {
-                    window.scrollTo({ top: 0, behavior: "smooth" })
+            {links.map(({ to, label }) => {
+              const submenu = subMenus[label]
+
+              if (submenu) {
+                const isOpen = openSub === label
+
+                return (
+                  <div key={label}>
+                    <button
+                      type="button"
+                      aria-haspopup="true"
+                      aria-expanded={isOpen}
+                      onClick={() =>
+                        setOpenSub(isOpen ? null : label)
+                      }
+                      className="w-full flex justify-between items-center px-3 py-2 rounded-md text-white"
+                    >
+                      <span>{label}</span>
+                      <span>{isOpen ? "−" : "+"}</span>
+                    </button>
+
+                    {isOpen && (
+                      <div className="ml-4 mt-1 flex flex-col gap-1">
+                        {submenu.map((s) => (
+                          <NavLink
+                            key={s.to}
+                            to={s.to}
+                            onClick={() => {
+                              setOpen(false)
+                              setOpenSub(null)
+                            }}
+                            className="px-3 py-2 text-sm rounded-md text-white/90 hover:bg-white/10"
+                          >
+                            {s.label}
+                          </NavLink>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )
+              }
+
+              return (
+                <NavLink
+                  key={to}
+                  to={to}
+                  onClick={() => {
+                    if (
+                      label === "Inicio" &&
+                      location.pathname === "/inicio"
+                    ) {
+                      window.scrollTo({ top: 0, behavior: "smooth" })
+                    }
+                    setOpen(false)
+                  }}
+                  className={({ isActive }) =>
+                    [
+                      "px-3 py-2 rounded-md",
+                      isActive
+                        ? "bg-white/10 text-[#bfbfbf]"
+                        : "text-white",
+                    ].join(" ")
                   }
-                  setOpen(false)
-                }}
-                className={({ isActive }) =>
-                  [
-                    "px-3 py-2 rounded-md",
-                    isActive ? "bg-white/10 text-[#bfbfbf]" : "text-white",
-                  ].join(" ")
-                }
-              >
-                {label}
-              </NavLink>
-            ))}
+                >
+                  {label}
+                </NavLink>
+              )
+            })}
           </nav>
         </div>
       )}
     </header>
   )
+
 }

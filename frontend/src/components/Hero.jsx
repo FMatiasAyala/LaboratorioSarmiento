@@ -6,45 +6,46 @@ const SLIDE_INTERVAL = 5000 // ms
 const slides = [
   {
     id: 1,
-    title: "Laboratorio",
-    desc: "Descripcion.",
-    ctaLabel: "Conocer más",
+    title: "Laboratorio Clínico Sarmiento",
+    desc: "Análisis clínicos para la detección, diagnóstico y seguimiento de enfermedades, con atención profesional y confiable.",
+    ctaLabel: "Nuestros servicios",
     ctaTo: "/servicios",
     image: "/banners/banner1.jpg",
   },
   {
     id: 2,
-    title: "Informacion",
-    desc: "Descripcion.",
-    ctaLabel: "Ver terapias",
-    ctaTo: "/servicios/terapia-radiante",
+    title: "Atención por orden de llegada",
+    desc: "Atendemos sin turno previo. Lunes a viernes por la mañana y por la tarde, con atención personalizada.",
+    ctaLabel: "Ver horarios",
+    ctaTo: "/nosotros",
     image: "/banners/banner2.jpg",
   },
   {
     id: 3,
     title: "Portal de pacientes",
-    desc: "Descripcion.",
+    desc: "Consultá tus resultados de laboratorio de forma segura usando tu DNI o número de protocolo.",
     ctaLabel: "Ingresar al portal",
-    ctaTo: "https://pacientes.icrrportal.com.ar/",
+    ctaTo: "/pacientes/portal",
     image: "/banners/banner3.jpg",
   },
   {
     id: 4,
-    title: "Novedades",
-    desc: "Descripcion.",
-    ctaLabel: "Ver sector mujer",
-    ctaTo: "/servicios/sector-mujer",
+    title: "Resultados confiables y validados",
+    desc: "Los estudios atraviesan distintas etapas hasta ser validados y entregados con respaldo profesional.",
+    ctaLabel: "Cómo entregamos resultados",
+    ctaTo: "/pacientes/preguntas",
     image: "/banners/banner4.jpg",
   },
   {
     id: 5,
-    title: "Conocenos",
-    desc: "Descripcion.",
-    ctaLabel: "Ver sector mujer",
-    ctaTo: "/servicios/sector-mujer",
+    title: "Equipo profesional",
+    desc: "Bioquímicos, técnicas y personal capacitado trabajan cada día para cuidar tu salud.",
+    ctaLabel: "Conocé nuestro equipo",
+    ctaTo: "/nosotros/equipo",
     image: "/banners/banner5.jpg",
   },
 ]
+
 
 function CTALink({ to, className, children }) {
   const isExternal = /^https?:\/\//i.test(to || "")
@@ -105,7 +106,7 @@ export default function Hero() {
     >
       <div className="mx-auto grid max-w-7xl grid-cols-1 gap-4 px-4 py-6 md:grid-cols-3">
         {/* Columna izquierda: destacado grande */}
-        <article className="relative md:col-span-2 h-[48vh] md:h-[60vh] overflow-hidden rounded-xl">
+        <article className="relative md:col-span-2 h-[55vh] md:h-[60vh] overflow-hidden rounded-xl">
           {slides.map((s, i) => (
             <div
               key={s.id}
@@ -133,11 +134,12 @@ export default function Hero() {
                       {s.ctaLabel}
                     </CTALink>
                     <CTALink
-                      to="/turnos"
+                      to="/pacientes/preparaciones"
                       className="inline-flex rounded-full border border-white/80 px-6 py-3 font-semibold text-white transition hover:bg-white hover:text-black"
                     >
-                      Reservar turno
+                      Ver preparaciones
                     </CTALink>
+
                   </div>
                 </div>
               </div>

@@ -1,29 +1,66 @@
 import React from "react"
 import { Link } from "react-router-dom"
-const PORTAL_URL = import.meta.env.VITE_PORTAL_URL;
+import { FaFileMedical, FaClipboardList, FaClock } from "react-icons/fa"
+
+const PORTAL_URL = import.meta.env.VITE_PORTAL_URL
+
 function AccesosRapidos() {
   const accesos = [
-    { title: "Solicitar Turno", img: "/icons/turnos.png", to: "/turnos" },
-    { title: "Portal Pacientes", img: "/icons/estudios.png", to: PORTAL_URL },
-    { title: "Novedades", img: "/icons/novedades.png", to: "/novedades" },
+    {
+      title: "Portal de Resultados",
+      to: PORTAL_URL,
+      icon: <FaFileMedical size={36} />,
+      external: true,
+    },
+    {
+      title: "Preparaciones",
+      to: "/pacientes/preparaciones",
+      icon: <FaClipboardList size={36} />,
+    },
+    {
+      title: "Horarios y Contacto",
+      to: "/nosotros/contacto",
+      icon: <FaClock size={36} />,
+    },
   ]
 
   return (
-    <section className="py-12 bg-white">
-      <div className="container mx-auto px-6 grid gap-6 md:grid-cols-3 cursor-pointer">
-        {accesos.map((a, i) => (
-          <Link key={a.to} to={a.to}>
+    <section className="py-14 bg-white">
+      <div className="container mx-auto px-6 grid gap-6 md:grid-cols-3">
+        {accesos.map((a) => {
+          const Card = (
             <div
-              key={i}
-              className="bg-gray-50 rounded-xl shadow-md p-6 text-center hover:shadow-lg hover:bg-[#D18A8A] hover:-translate-y-4 transition-all duration-300"
+              className="
+                bg-gray-50 rounded-xl shadow-md p-6 text-center
+                hover:shadow-lg hover:bg-[#D18A8A]
+                hover:-translate-y-2 transition-all duration-300
+              "
             >
-              <img src={a.img} alt={a.title} className="mx-auto mb-4 w-16 h-16" />
+              <div className="flex justify-center mb-4 text-[#A63A3A]">
+                {a.icon}
+              </div>
+
               <h4 className="text-lg font-semibold text-black">
                 {a.title}
               </h4>
             </div>
-          </Link>
-        ))}
+          )
+
+          return a.external ? (
+            <a
+              key={a.title}
+              href={a.to}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {Card}
+            </a>
+          ) : (
+            <Link key={a.title} to={a.to}>
+              {Card}
+            </Link>
+          )
+        })}
       </div>
     </section>
   )
