@@ -20,7 +20,7 @@ export default function Resultados() {
   const [modalPdf, setModalPdf] = useState(false);
   const [modalPdfLoading, setModalPdfLoading] = useState(false);
   const [modalPdfError, setModalPdfError] = useState("");
-  const [pdfUrl, setPdfUrl] = useState(null);
+  
 
 
   // ========================
@@ -105,10 +105,10 @@ export default function Resultados() {
   const descargarPDF = async (ingreso) => {
     const token = localStorage.token;
 
+    // abrir modal + poner spinner
     setModalPdf(true);
     setModalPdfLoading(true);
     setModalPdfError("");
-    setPdfUrl(null);
 
     try {
       const resp = await fetch(`${API_URL}/api/pdf-url/${ingreso}`, {
@@ -116,6 +116,8 @@ export default function Resultados() {
       });
 
       const data = await resp.json();
+
+      // detener spinner
       setModalPdfLoading(false);
 
       if (!resp.ok || !data.ok) {
@@ -123,8 +125,9 @@ export default function Resultados() {
         return;
       }
 
-      // Guardamos la URL segura para mostrar el visor
-      setPdfUrl(data.url);
+      // PDF listo → cerrar modal y abrir pestaña
+      setModalPdf(false);
+      window.open(data.url, "_blank", "noopener,noreferrer");
 
     } catch (err) {
       setModalPdfLoading(false);
@@ -300,102 +303,53 @@ export default function Resultados() {
 
         </div>
       )}
-
-      
+      {/* ======================== */}
+      {/* MODAL DESCARGA DE PDF    */}
+      {/* ======================== */}
       {modalPdf && (
         <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50 p-4">
 
-          <div className="bg-white w-full max-w-3xl p-6 rounded-2xl shadow-xl border border-gray-200 relative animate-fadeIn">
+          <div className="bg-white w-full max-w-sm p-6 rounded-2xl shadow-xl border border-gray-200 relative animate-fadeIn">
 
-            {/* BOTÓN CERRAR */}
-            <button
-              onClick={() => {
-                setModalPdf(false);
-                setPdfUrl(null);
-              }}
-              className="absolute top-3 right-3 text-gray-400 hover:text-gray-700"
-            >
-              <FaTimes size={20} />
-            </button>
+            {/* TÍTULO */}
+            <h2 className="text-xl font-bold mb-4 text-[#A63A3A] text-center">
+              Generando PDF…
+            </h2>
 
-            {/* ========= ESTADO: CARGANDO PDF ========= */}
+            {/* SPINNER */}
             {modalPdfLoading && (
-              <div className="text-center py-10">
-                <h2 className="text-xl font-bold text-[#A63A3A] mb-4">Generando PDF…</h2>
-
-                <div className="flex justify-center py-4">
-                  <div className="w-12 h-12 border-4 border-[#A63A3A] border-t-transparent rounded-full animate-spin"></div>
-                </div>
+              <div className="flex justify-center py-4">
+                <div className="w-10 h-10 border-4 border-[#A63A3A] border-t-transparent rounded-full animate-spin"></div>
               </div>
             )}
 
-            {/* ========= ESTADO: ERROR ========= */}
+            {/* ERROR */}
             {!modalPdfLoading && modalPdfError && (
-              <div className="text-center py-8">
-                <h2 className="text-xl font-bold text-red-600 mb-2">Error</h2>
-                <p className="text-gray-700 mb-4">{modalPdfError}</p>
+              <>
+                <p className="text-red-600 text-center mb-4">{modalPdfError}</p>
 
                 <button
                   onClick={() => setModalPdf(false)}
-                  className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg"
+                  className="w-full bg-gray-600 hover:bg-gray-700 text-white py-2 rounded-lg"
                 >
                   Cerrar
                 </button>
-              </div>
+              </>
             )}
 
-            {/* ========= ESTADO: PDF LISTO (VISOR) ========= */}
-            {!modalPdfLoading && pdfUrl && (
-              <div>
-                <h2 className="text-xl font-bold mb-4 text-[#A63A3A]">
-                  Vista previa del estudio
-                </h2>
-
-                {/* VISOR PDF */}
-                <iframe
-                  src={pdfUrl}
-                  className="w-full h-[70vh] border rounded-lg shadow-inner"
-                  title="Visor PDF"
-                ></iframe>
-
-                {/* BOTONES */}
-                <div className="flex justify-between mt-6">
-                  <button
-                    onClick={() => window.open(pdfUrl, "_blank")}
-                    className="bg-[#A63A3A] hover:bg-[#8F2F2F] text-white px-4 py-2 rounded-lg shadow"
-                  >
-                    Abrir en pestaña nueva
-                  </button>
-
-                  <button
-                    onClick={() => {
-                      const a = document.createElement("a");
-                      a.href = pdfUrl;
-                      a.download = `estudio-${Date.now()}.pdf`;
-                      a.click();
-                    }}
-                    className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg shadow"
-                  >
-                    Descargar PDF
-                  </button>
-
-                  <button
-                    onClick={() => {
-                      setModalPdf(false);
-                      setPdfUrl(null);
-                    }}
-                    className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg shadow"
-                  >
-                    Cerrar
-                  </button>
-                </div>
-              </div>
+            {/* CANCELAR (solo mientras carga) */}
+            {modalPdfLoading && (
+              <button
+                onClick={() => setModalPdf(false)}
+                className="w-full bg-gray-300 hover:bg-gray-400 text-gray-800 py-2 rounded-lg mt-4"
+              >
+                Cancelar
+              </button>
             )}
-
           </div>
+
         </div>
       )}
-
 
     </div>
   );
