@@ -174,7 +174,7 @@ exports.editarUsuario = async (req, res) => {
     // Si viene password, la actualizamos
     if (password && password.trim() !== "") {
       const hash = await bcrypt.hash(password, 10);
-      query += `, password=?`;
+      query += `, password_hash?`;
       params.push(hash);
     }
 
