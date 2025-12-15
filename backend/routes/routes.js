@@ -8,6 +8,12 @@ const usuarioController = require("../controllers/usuarioController");
 const requireAdmin = require("../middlewares/requireAdmin");
 const mailerController = require("../controllers/mailerController");
 const autoRegistroController = require("../controllers/autoregistroController");
+const perfilController = require("../controllers/perfilController");
+
+// Rutas de perfil
+router.get("/mi-perfil", authMiddleware, perfilController.getMiPerfil);
+router.put("/mi-perfil", authMiddleware, perfilController.updateMiPerfil);
+router.put("/mi-perfil/password", authMiddleware, perfilController.updatePassword);
 
 router.post("/enviar-token", mailerController.enviarToken);
 router.post("/validar-token", mailerController.validarToken);
@@ -63,6 +69,7 @@ router.get(
   authMiddleware,
   estudiosController.resultados
 );
+
 router.get("/detalles/:ingreso", authMiddleware, estudiosController.detalles);
 router.get("/pdf/:ingreso", estudiosController.pdf);
 router.get("/pdf-url/:ingreso", authMiddleware, estudiosController.pdfUrl);
