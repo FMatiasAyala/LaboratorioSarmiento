@@ -149,7 +149,7 @@ exports.editarUsuario = async (req, res) => {
     const { nombre, apellido, fecha_nac, nro_historia, email, rol } = req.body;
 
     await pool.query(
-      `UPDATE usuarios SET nombre=?, apellido=?, fecha_nac=?, nro_historia=?, email?, rol=? WHERE id=?`,
+      `UPDATE usuarios SET nombre=?, apellido=?, fecha_nac=?, nro_historia=?, email=?, rol=? WHERE id=?`,
       [nombre, apellido, fecha_nac, nro_historia, email, rol, id]
     );
 
