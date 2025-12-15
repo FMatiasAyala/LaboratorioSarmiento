@@ -9,7 +9,7 @@ export default function PortalLayout() {
   return (
     <div className="min-h-screen bg-gray-50 flex">
       {/* Sidebar desktop */}
-      <aside className="hidden md:block w-64">
+      <aside className="w-64 bg-[#A63A3A] text-white min-h-full">
         <Sidebar />
       </aside>
 
@@ -31,9 +31,12 @@ export default function PortalLayout() {
         {/* Header mobile */}
         <PortalNavbar onMenuClick={() => setOpen(true)} />
 
-        <main className="flex-1 px-4 py-6 md:p-8">
-          <Outlet />
+        <main className="flex-1 px-4 py-6 md:px-8 md:py-8">
+          <div className="max-w-4xl mx-auto w-full">
+            <Outlet />
+          </div>
         </main>
+
       </div>
     </div>
   )
