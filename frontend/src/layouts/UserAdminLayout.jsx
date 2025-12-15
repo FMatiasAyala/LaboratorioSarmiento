@@ -1,6 +1,6 @@
 import { useState } from "react"
 import Sidebar from "../components/Portal/Sidebar"
-import PortalNavbar from "../components/Portal/PortalNavBar"
+import PortalNavbar from "../components/Portal/PortalNavbar"
 import { Outlet } from "react-router-dom"
 
 export default function UserAdminLayout() {
