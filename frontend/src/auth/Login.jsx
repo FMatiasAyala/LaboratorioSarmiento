@@ -88,42 +88,65 @@ export default function Login() {
 
 
   return (
-    <section className="flex items-center justify-center min-h-screen bg-gray-50">
-      <div className="w-full max-w-md bg-white shadow-lg rounded-xl p-8">
+    <section className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#A63A3A]/10 to-gray-100 px-4">
+      <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-6 sm:p-8">
 
-        <h1 className="text-2xl font-bold text-center text-[#A63A3A] mb-6">
-          Acceso al Portal de Pacientes
+        {/* Logo */}
+        <div className="flex justify-center mb-6">
+          <img
+            src="/logos/logo.jpg"
+            alt="Laboratorio Clínico"
+            className="h-14 object-contain rounded-md"
+          />
+        </div>
+
+        <h1 className="text-xl sm:text-2xl font-bold text-center text-[#A63A3A] mb-1">
+          Portal de Pacientes
         </h1>
+        <p className="text-center text-gray-600 text-sm mb-6">
+          Acceda a sus estudios y resultados
+        </p>
 
-        {/* ========== PASO 1 — DNI ========== */}
+        {/* ===== PASO 1 ===== */}
         {step === 1 && (
           <form onSubmit={verificarDni} className="space-y-5">
             <div>
-              <label className="block text-gray-700 font-medium mb-1">DNI</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                DNI
+              </label>
               <input
                 ref={inputRef}
                 type="text"
+                inputMode="numeric"
+                placeholder="Ingrese su DNI"
                 value={dni}
                 onChange={(e) => setDni(e.target.value)}
-                className="w-full border border-gray-300 rounded-md px-3 py-2 
-                focus:outline-none focus:ring-2 focus:ring-[#A63A3A]"
+                className="w-full rounded-lg border border-gray-300 px-4 py-2.5
+              focus:outline-none focus:ring-2 focus:ring-[#A63A3A]"
                 required
               />
             </div>
 
-            {error && <p className="text-red-600 text-center text-sm">{error}</p>}
+            {error && (
+              <p className="text-red-600 text-sm text-center">{error}</p>
+            )}
 
-            <button className="w-full bg-[#A63A3A] text-white py-2 rounded-md font-semibold hover:bg-[#8F2F2F] transition">
+            <button
+              type="submit"
+              className="w-full bg-[#A63A3A] text-white py-2.5 rounded-lg font-semibold
+            hover:bg-[#8F2F2F] transition"
+            >
               Continuar
             </button>
           </form>
         )}
 
-        {/* ========== PASO 2 — LOGIN ========== */}
+        {/* ===== PASO 2 ===== */}
         {step === 2 && (
           <form onSubmit={login} className="space-y-5">
-
-            <p className="text-gray-700 text-center">Ingrese su contraseña.</p>
+            <p className="text-gray-700 text-center text-sm">
+              Ingrese su contraseña para continuar
+            </p>
 
             <div>
               <input
@@ -132,28 +155,44 @@ export default function Login() {
                 placeholder="Contraseña"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full border border-gray-300 rounded-md px-3 py-2 
-                focus:outline-none focus:ring-2 focus:ring-[#A63A3A]"
+                className="w-full rounded-lg border border-gray-300 px-4 py-2.5
+              focus:outline-none focus:ring-2 focus:ring-[#A63A3A]"
+                required
               />
             </div>
 
-            {error && <p className="text-red-600 text-center text-sm">{error}</p>}
+            {error && (
+              <p className="text-red-600 text-sm text-center">{error}</p>
+            )}
 
-            <button className="w-full bg-[#A63A3A] text-white py-2 rounded-md font-semibold hover:bg-[#8F2F2F] transition">
+            <button
+              type="submit"
+              className="w-full bg-[#A63A3A] text-white py-2.5 rounded-lg font-semibold
+            hover:bg-[#8F2F2F] transition"
+            >
               Ingresar
+            </button>
+
+            {/* Olvidé contraseña */}
+            <button
+              type="button"
+              className="block w-full text-sm text-[#A63A3A] underline text-center mt-1"
+              onClick={() => alert("Funcionalidad en desarrollo")}
+            >
+              Olvidé mi contraseña
             </button>
 
             <button
               type="button"
-              className="underline text-gray-600 w-full mt-2"
+              className="block w-full text-sm text-gray-500 text-center"
               onClick={() => setStep(1)}
             >
               Volver atrás
             </button>
-
           </form>
         )}
       </div>
     </section>
   );
+
 }

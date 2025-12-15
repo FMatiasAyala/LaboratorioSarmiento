@@ -31,31 +31,35 @@ export default function Sidebar() {
   };
 
   return (
-    <aside className="w-64 bg-[#A63A3A] text-white h-screen p-4 flex flex-col justify-between">
+    <aside className="w-64 bg-[#A63A3A] text-white min-h-screen p-4 flex flex-col justify-between">
       {/* Bloque superior */}
       <div>
         {/* Logo */}
-        <div className="flex items-center justify-center mb-8">
+        <div className="flex items-center justify-center mb-6">
           <img
             src="/logos/logo.jpg"
             alt="Laboratorio Clínico"
-            className="h-10 w-30 object-contain rounded-md"
+            className="h-10 w-auto object-contain rounded-md"
           />
         </div>
 
-        {/* Navegación dinámica */}
-        <nav className="flex flex-col space-y-2">
+        {/* Navegación */}
+        <nav className="flex flex-col gap-1">
           {links.map((link) => (
             <NavLink
               key={link.to}
               to={link.to}
               className={({ isActive }) =>
-                `flex items-center gap-3 px-3 py-2 rounded-md transition ${
-                  isActive ? "bg-white/20" : "hover:bg-white/10"
-                }`
+                `
+            flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium
+            transition-colors
+            ${isActive
+                  ? "bg-white/20"
+                  : "hover:bg-white/10"}
+            `
               }
             >
-              {link.icon}
+              <span className="text-lg">{link.icon}</span>
               <span>{link.label}</span>
             </NavLink>
           ))}
@@ -63,20 +67,21 @@ export default function Sidebar() {
       </div>
 
       {/* Footer */}
-      <div className="border-t border-white/20 mt-6 pt-4">
+      <div className="border-t border-white/20 pt-4">
         <button
           onClick={handleLogout}
-          className="flex items-center gap-3 w-full text-left px-3 py-2 rounded-md hover:bg-white/10 transition"
+          className="flex items-center gap-3 w-full px-3 py-2 rounded-md text-sm hover:bg-white/10 transition"
         >
-          <FaSignOutAlt />
+          <FaSignOutAlt className="text-lg" />
           <span>Cerrar sesión</span>
         </button>
 
-        <p className="text-xs text-white/70 mt-6 text-center leading-tight">
+        <p className="text-xs text-white/70 mt-4 text-center leading-snug">
           © 2025 Laboratorio Clínico<br />
           Todos los derechos reservados
         </p>
       </div>
     </aside>
+
   );
 }

@@ -39,6 +39,7 @@ exports.buscarPorDniAvanzado = async (req, res) => {
           apellido: pac.apellido.trim(),
           fecha_nac: pac.fechanac ? pac.fechanac.split("T")[0] : null,
           nro_historia: pac.codigo,
+          email: pac.email || "",
           rol: "paciente",
         },
       });
@@ -62,7 +63,7 @@ exports.buscarPorDniAvanzado = async (req, res) => {
 // ================================
 exports.crearUsuario = async (req, res) => {
   try {
-    const { dni, nombre, apellido, fecha_nac, nro_historia, password, rol } =
+    const { dni, nombre, apellido, fecha_nac, nro_historia, email, password, rol } =
       req.body;
 
     const [exists] = await pool.query(
@@ -76,9 +77,9 @@ exports.crearUsuario = async (req, res) => {
     const passHash = await bcrypt.hash(password, 10);
 
     const [insert] = await pool.query(
-      `INSERT INTO usuarios (dni, nombre, apellido, fecha_nac, nro_historia, rol, password_hash)
-     VALUES (?, ?, ?, ?, ?, ?, ?)`,
-      [dni, nombre, apellido, fecha_nac, nro_historia, rol, passHash]
+      `INSERT INTO usuarios (dni, nombre, apellido, fecha_nac, nro_historia, email,rol, password_hash)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      [dni, nombre, apellido, fecha_nac, nro_historia, email,rol, passHash]
     );
 
     res.json({
@@ -90,6 +91,7 @@ exports.crearUsuario = async (req, res) => {
         apellido,
         fecha_nac,
         nro_historia,
+        email,
         rol,
       },
     });
@@ -106,7 +108,7 @@ exports.listarUsuarios = async (req, res) => {
   console.log("requested by user:", req.user);
   try {
     const [rows] = await pool.query(
-      "SELECT id, dni, nombre, apellido, fecha_nac, nro_historia, rol FROM usuarios"
+      "SELECT id, dni, nombre, apellido, fecha_nac, nro_historia, email, rol FROM usuarios"
     );
 
     res.json({ ok: true, usuarios: rows });
@@ -124,7 +126,7 @@ exports.obtenerUsuario = async (req, res) => {
     const { id } = req.params;
 
     const [rows] = await pool.query(
-      "SELECT id, dni, nombre, apellido, fecha_nac, nro_historia, rol FROM usuarios WHERE id = ?",
+      "SELECT id, dni, nombre, apellido, fecha_nac, nro_historia, email, rol FROM usuarios WHERE id = ?",
       [id]
     );
 
@@ -144,11 +146,11 @@ exports.obtenerUsuario = async (req, res) => {
 exports.editarUsuario = async (req, res) => {
   try {
     const { id } = req.params;
-    const { nombre, apellido, fecha_nac, nro_historia, rol } = req.body;
+    const { nombre, apellido, fecha_nac, nro_historia, email, rol } = req.body;
 
     await pool.query(
-      `UPDATE usuarios SET nombre=?, apellido=?, fecha_nac=?, nro_historia=?, rol=? WHERE id=?`,
-      [nombre, apellido, fecha_nac, nro_historia, rol, id]
+      `UPDATE usuarios SET nombre=?, apellido=?, fecha_nac=?, nro_historia=?, email?, rol=? WHERE id=?`,
+      [nombre, apellido, fecha_nac, nro_historia, email, rol, id]
     );
 
     res.json({ ok: true });

@@ -15,6 +15,7 @@ export default function UsuarioForm({ open, onClose, usuario, onSaved }) {
     apellido: "",
     fecha_nac: "",
     nro_historia: "",
+    email: "",
     rol: "paciente",
     password: "",
   });
@@ -51,6 +52,7 @@ export default function UsuarioForm({ open, onClose, usuario, onSaved }) {
           ? usuario.fecha_nac.split("T")[0]
           : "",
         nro_historia: usuario.nro_historia || "",
+        email: usuario.email || "",
         rol: usuario.rol || "paciente",
         password: "",
       });
@@ -105,6 +107,7 @@ export default function UsuarioForm({ open, onClose, usuario, onSaved }) {
           ? new Date(data.usuario.fecha_nac).toISOString().split("T")[0]
           : "",
         nro_historia: data.usuario?.nro_historia || "",
+        email: data.usuario?.email || "",
       }));
 
       setAllowPassword(true);
@@ -129,6 +132,7 @@ export default function UsuarioForm({ open, onClose, usuario, onSaved }) {
           ? new Date(data.usuario.fecha_nac).toISOString().split("T")[0]
           : "",
         nro_historia: data.usuario?.nro_historia || "",
+        email: data.usuario?.email || "",
         rol: data.usuario?.rol || "paciente",
       }));
 
@@ -154,6 +158,7 @@ export default function UsuarioForm({ open, onClose, usuario, onSaved }) {
       apellido: "",
       fecha_nac: "",
       nro_historia: "",
+      email: "",
       rol: "paciente",
       password: "",
     });
@@ -189,6 +194,13 @@ export default function UsuarioForm({ open, onClose, usuario, onSaved }) {
         });
       }
     }
+    if (!form.email || !form.email.includes("@")) {
+      return setMsg({
+        type: "error",
+        text: "Debe ingresar un correo electrónico válido.",
+      });
+    }
+
 
     let data = isEdit
       ? await UsuariosAPI.update(usuario.id, form)
@@ -312,6 +324,15 @@ export default function UsuarioForm({ open, onClose, usuario, onSaved }) {
           value={form.nro_historia}
           onChange={handleChange}
           className="border p-2 rounded w-full"
+        />
+        <input
+          type="email"
+          name="email"
+          placeholder="Correo electrónico"
+          value={form.email}
+          onChange={handleChange}
+          className="border p-2 rounded w-full"
+          required
         />
 
         <select
