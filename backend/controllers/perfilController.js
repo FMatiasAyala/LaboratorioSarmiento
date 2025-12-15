@@ -1,6 +1,6 @@
+const pool = require("../db");
+const bcrypt = require("bcrypt");
 
-
-// controllers/perfilController.js
 exports.getMiPerfil = async (req, res) => {
   try {
     const userId = req.user.id;

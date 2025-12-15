@@ -12,6 +12,7 @@ import Login from "./auth/Login";
 import Resultados from "./page/Portal/Resultados";
 import PreguntasFrecuentes from "./page/FAQ";
 import UsuariosList from "./page/Portal/UsuariosList";
+import Perfil from "./page/Portal/Perfil";
 
 import AutoRegistroInicio from "./auth/AutoRegistroInicio";
 import AutoRegistroConfirmar from "./auth/AutoRegistroConfirmar";
@@ -56,6 +57,7 @@ export default function App() {
           {rol === "admin" && (
             <Route path="usuarios" element={<UsuariosList />} />
           )}
+          <Route path="perfil" element={<Perfil />} />
 
           {/* Redirección por defecto */}
           <Route
