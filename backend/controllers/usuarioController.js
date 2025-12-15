@@ -63,8 +63,16 @@ exports.buscarPorDniAvanzado = async (req, res) => {
 // ================================
 exports.crearUsuario = async (req, res) => {
   try {
-    const { dni, nombre, apellido, fecha_nac, nro_historia, email, password, rol } =
-      req.body;
+    const {
+      dni,
+      nombre,
+      apellido,
+      fecha_nac,
+      nro_historia,
+      email,
+      password,
+      rol,
+    } = req.body;
 
     const [exists] = await pool.query(
       "SELECT id FROM usuarios WHERE dni = ? LIMIT 1",
@@ -79,7 +87,7 @@ exports.crearUsuario = async (req, res) => {
     const [insert] = await pool.query(
       `INSERT INTO usuarios (dni, nombre, apellido, fecha_nac, nro_historia, email,rol, password_hash)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-      [dni, nombre, apellido, fecha_nac, nro_historia, email,rol, passHash]
+      [dni, nombre, apellido, fecha_nac, nro_historia, email, rol, passHash]
     );
 
     res.json({
@@ -146,12 +154,34 @@ exports.obtenerUsuario = async (req, res) => {
 exports.editarUsuario = async (req, res) => {
   try {
     const { id } = req.params;
-    const { nombre, apellido, fecha_nac, nro_historia, email, rol } = req.body;
+    const {
+      nombre,
+      apellido,
+      fecha_nac,
+      nro_historia,
+      email,
+      rol,
+      password, // 👈 ahora sí
+    } = req.body;
 
-    await pool.query(
-      `UPDATE usuarios SET nombre=?, apellido=?, fecha_nac=?, nro_historia=?, email=?, rol=? WHERE id=?`,
-      [nombre, apellido, fecha_nac, nro_historia, email, rol, id]
-    );
+    // Armamos query dinámica
+    let query = `
+      UPDATE usuarios
+      SET nombre=?, apellido=?, fecha_nac=?, nro_historia=?, email=?, rol=?
+    `;
+    const params = [nombre, apellido, fecha_nac, nro_historia, email, rol];
+
+    // Si viene password, la actualizamos
+    if (password && password.trim() !== "") {
+      const hash = await bcrypt.hash(password, 10);
+      query += `, password=?`;
+      params.push(hash);
+    }
+
+    query += ` WHERE id=?`;
+    params.push(id);
+
+    await pool.query(query, params);
 
     res.json({ ok: true });
   } catch (err) {

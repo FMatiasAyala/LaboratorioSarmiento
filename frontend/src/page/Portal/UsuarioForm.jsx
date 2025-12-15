@@ -5,6 +5,7 @@ import toast from "react-hot-toast";
 
 export default function UsuarioForm({ open, onClose, usuario, onSaved }) {
   const isEdit = !!usuario?.id;
+  const [editId, setEditId] = useState(null);
   const [modo, setModo] = useState("crear");
 
   const [msg, setMsg] = useState({ type: "", text: "" }); // 🔥 mensaje interno
@@ -121,8 +122,8 @@ export default function UsuarioForm({ open, onClose, usuario, onSaved }) {
         type: "info",
         text: "Usuario encontrado. Se puede editar.",
       });
-
       setModo("editar");
+      setEditId(data.usuario.id);
 
       setForm((f) => ({
         ...f,
@@ -166,7 +167,14 @@ export default function UsuarioForm({ open, onClose, usuario, onSaved }) {
     setDniStatus(null);
     setAllowPassword(false);
     setModo("crear");
+    setEditId(null);
   };
+  useEffect(() => {
+    if (!open) {
+      setMsg({ type: "", text: "" });
+      setEditId(null);
+    }
+  }, [open]);
 
   // ============================
   // SUBMIT
@@ -202,9 +210,11 @@ export default function UsuarioForm({ open, onClose, usuario, onSaved }) {
     }
 
 
-    let data = isEdit
-      ? await UsuariosAPI.update(usuario.id, form)
-      : await UsuariosAPI.create(form);
+    let data =
+      isEdit || editId
+        ? await UsuariosAPI.update(editId ?? usuario.id, form)
+        : await UsuariosAPI.create(form);
+
 
     if (data.ok) {
       toast.success(isEdit ? "Usuario actualizado" : "Usuario creado");
