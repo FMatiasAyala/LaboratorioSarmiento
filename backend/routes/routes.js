@@ -9,7 +9,7 @@ const requireAdmin = require("../middlewares/requireAdmin");
 const mailerController = require("../controllers/mailerController");
 const autoRegistroController = require("../controllers/autoregistroController");
 const perfilController = require("../controllers/perfilController");
-const { authLimiter } = require("../middlewares/authLimiter");
+const authLimiter = require("../middlewares/authLimiter");
 
 // Rutas de perfil
 router.get("/mi-perfil", authMiddleware, perfilController.getMiPerfil);
