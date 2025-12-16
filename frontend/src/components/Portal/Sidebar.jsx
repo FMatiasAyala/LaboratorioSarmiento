@@ -11,14 +11,10 @@ export default function Sidebar() {
   // LINKS SEGÚN ROL
   const linksPaciente = [
     { to: "/portal/resultados", icon: <FaFileMedical />, label: "Resultados" },
-    { to: "/portal/preparaciones", icon: <FaFlask />, label: "Preparaciones" },
-    { to: "/portal/info", icon: <FaInfoCircle />, label: "Información" },
   ];
 
   const linksAdmin = [
     { to: "/portal/usuarios", icon: <FaUsersCog />, label: "Gestión Usuarios" },
-    { to: "/portal/preparaciones-admin", icon: <FaFlask />, label: "Cargar Preparaciones" },
-    { to: "/portal/info-admin", icon: <FaInfoCircle />, label: "Cargar Información" },
   ];
 
   const miCuentaLink = { to: "/portal/perfil", icon: <FaUser />, label: "Mi Cuenta" };

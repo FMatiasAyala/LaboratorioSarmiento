@@ -10,6 +10,8 @@ const slides = [
     desc: "Análisis clínicos para la detección, diagnóstico y seguimiento de enfermedades, con atención profesional y confiable.",
     ctaLabel: "Nuestros servicios",
     ctaTo: "/servicios",
+    ctaLabelSecondary: "Conocé el laboratorio",
+    ctaToSecondary: "/nosotros",
     image: "/banners/banner1.jpg",
   },
   {
@@ -17,7 +19,9 @@ const slides = [
     title: "Atención por orden de llegada",
     desc: "Atendemos sin turno previo. Lunes a viernes por la mañana y por la tarde, con atención personalizada.",
     ctaLabel: "Ver horarios",
-    ctaTo: "/nosotros",
+    ctaTo: "/nosotros/contacto",
+    ctaLabelSecondary: "Cómo trabajamos",
+    ctaToSecondary: "/pacientes/preguntas",
     image: "/banners/banner2.jpg",
   },
   {
@@ -26,6 +30,8 @@ const slides = [
     desc: "Consultá tus resultados de laboratorio de forma segura usando tu DNI o número de protocolo.",
     ctaLabel: "Ingresar al portal",
     ctaTo: "/pacientes/portal",
+    ctaLabelSecondary: "Preguntas frecuentes",
+    ctaToSecondary: "/pacientes/preguntas",
     image: "/banners/banner3.jpg",
   },
   {
@@ -34,6 +40,8 @@ const slides = [
     desc: "Los estudios atraviesan distintas etapas hasta ser validados y entregados con respaldo profesional.",
     ctaLabel: "Cómo entregamos resultados",
     ctaTo: "/pacientes/preguntas",
+    ctaLabelSecondary: "Portal de pacientes",
+    ctaToSecondary: "/pacientes/portal",
     image: "/banners/banner4.jpg",
   },
   {
@@ -42,9 +50,12 @@ const slides = [
     desc: "Bioquímicos, técnicas y personal capacitado trabajan cada día para cuidar tu salud.",
     ctaLabel: "Conocé nuestro equipo",
     ctaTo: "/nosotros/equipo",
+    ctaLabelSecondary: "Contacto",
+    ctaToSecondary: "/nosotros/contacto",
     image: "/banners/banner5.jpg",
   },
-]
+];
+
 
 
 function CTALink({ to, className, children }) {
@@ -134,10 +145,10 @@ export default function Hero() {
                       {s.ctaLabel}
                     </CTALink>
                     <CTALink
-                      to="/pacientes/preparaciones"
+                      to={s.ctaToSecondary}
                       className="inline-flex rounded-full border border-white/80 px-6 py-3 font-semibold text-white transition hover:bg-white hover:text-black"
                     >
-                      Ver preparaciones
+                      {s.ctaLabelSecondary}
                     </CTALink>
 
                   </div>
