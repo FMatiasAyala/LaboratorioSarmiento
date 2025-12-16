@@ -5,12 +5,6 @@ require("dotenv").config();
 
 const app = express();
 
-app.use((req, res, next) => {
-  console.log("ORIGIN:", req.headers.origin);
-  console.log("METHOD:", req.method);
-  next();
-});
-
 app.use(
   cors({
     origin: function (origin, callback) {

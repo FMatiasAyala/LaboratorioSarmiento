@@ -205,3 +205,36 @@ exports.eliminarUsuario = async (req, res) => {
     res.status(500).json({ ok: false, error: "Error interno" });
   }
 };
+
+exports.generarCredencialesPDF = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // 1. Buscar usuario
+    const [rows] = await pool.query(
+      "SELECT dni, nombre, apellido, email, nro_historia FROM usuarios WHERE id = ?",
+      [id]
+    );
+
+    if (!rows.length) {
+      return res.status(404).json({ error: "Usuario no encontrado" });
+    }
+
+    const usuario = rows[0];
+
+    // 2. Generar PDF (ej: pdfkit / puppeteer)
+    const pdfBuffer = await generarPdfCredenciales(usuario);
+
+    // 3. Enviar PDF
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader(
+      "Content-Disposition",
+      `inline; filename=Credenciales-${usuario.dni}.pdf`
+    );
+
+    res.end(pdfBuffer);
+  } catch (err) {
+    console.error("Error PDF credenciales:", err);
+    res.status(500).json({ error: "Error generando PDF" });
+  }
+};

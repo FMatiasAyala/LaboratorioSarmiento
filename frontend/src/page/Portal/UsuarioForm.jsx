@@ -215,6 +215,20 @@ export default function UsuarioForm({ open, onClose, usuario, onSaved }) {
         ? await UsuariosAPI.update(editId ?? usuario.id, form)
         : await UsuariosAPI.create(form);
 
+    if (data.ok && !isEdit) {
+      const resp = await fetch(
+        `${API_URL}/api/usuarios/${data.id}/credenciales-pdf`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      if (resp.ok) {
+        const blob = await resp.blob();
+        const url = URL.createObjectURL(blob);
+        window.open(url, "_blank");
+      }
+    }
 
     if (data.ok) {
       toast.success(isEdit ? "Usuario actualizado" : "Usuario creado");
