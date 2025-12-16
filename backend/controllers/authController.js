@@ -163,7 +163,7 @@ exports.login = async (req, res) => {
     const rolFinal = user.rol || "paciente";
 
     const token = jwt.sign(
-      { id: user.id, dni: user.dni, rol: rolFinal },
+      { id: user.id, dni: user.dni, rol: rolFinal, nro_historia: user.nro_historia },
       process.env.JWT_SECRET,
       { expiresIn: "7d" }
     );
