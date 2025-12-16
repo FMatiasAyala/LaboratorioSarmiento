@@ -83,22 +83,30 @@ export default function Footer() {
           </p>
 
           {/* Redes (si no existen, se pueden ocultar luego) */}
-          <div className="flex gap-4 mt-4">
+          <div className="flex items-center gap-3 mt-4 text-sm text-gray-200">
+            {/*
+  <a
+    href="#"
+    className="bg-white/10 p-2 rounded-full hover:bg-white/20 transition"
+    aria-label="Facebook"
+  >
+    <FaFacebook className="w-5 h-5" />
+  </a>
+  */}
+
             <a
-              href="#"
-              className="bg-white/10 p-2 rounded-full hover:bg-white/20 transition"
-              aria-label="Facebook"
-            >
-              <FaFacebook className="w-5 h-5" />
-            </a>
-            <a
-              href="#"
-              className="bg-white/10 p-2 rounded-full hover:bg-white/20 transition"
+              href="https://www.instagram.com/lab.sarmiento?igsh=MXhhdnNoZ3N3a2Zzcw=="
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 bg-white/10 px-3 py-2 rounded-full
+               hover:bg-white/20 transition"
               aria-label="Instagram"
             >
-              <FaInstagram className="w-5 h-5" />
+              <FaInstagram className="w-4 h-4" />
+              <span className="font-medium">@lab.sarmiento</span>
             </a>
           </div>
+
         </div>
 
         {/* Columna 4 — Portal Pacientes */}

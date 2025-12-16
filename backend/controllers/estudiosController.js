@@ -1,17 +1,33 @@
 const LAB_API = process.env.LAB_API;
 const LAB_KEY = process.env.LAB_KEY;
 const jwt = require("jsonwebtoken");
-const { Readable } = require("stream");
+
+async function ingresoPerteneceAPaciente(ingreso, nro_historia) {
+  const resp = await fetch(
+    `${LAB_API}/api/estudios/resultados/${nro_historia}?key=${LAB_KEY}`
+  );
+
+  if (!resp.ok) return false;
+
+  const data = await resp.json();
+
+  const ingresos = data?.ingresos || [];
+
+  return ingresos.some((i) => String(i.ingreso) === String(ingreso));
+}
 
 exports.pdfUrl = async (req, res) => {
   try {
     const ingreso = req.params.ingreso;
-    const user = req.user; // { id, dni }
+    const user = req.user;
 
-    // Token temporal (30 segundos)
     const tempToken = jwt.sign(
-      { dni: user.dni, ingreso },
-      process.env.JWT_SECRET,
+      {
+        dni: user.dni,
+        ingreso,
+        jti: crypto.randomUUID(),
+      },
+      process.env.JWT_TEMP_SECRET,
       { expiresIn: "30s" }
     );
 
@@ -31,77 +47,170 @@ exports.pdf = async (req, res) => {
     const temp = req.query.temp;
 
     if (!temp) {
-      return res.status(401).json({ ok: false, error: "Token temporal requerido" });
+      return res.status(401).json({
+        ok: false,
+        error: "Token temporal requerido",
+      });
     }
 
     let decoded;
     try {
-      decoded = jwt.verify(temp, process.env.JWT_SECRET);
-    } catch (err) {
-      return res.status(401).json({ ok: false, error: "Token temporal inválido o expirado" });
+      decoded = jwt.verify(temp, process.env.JWT_TEMP_SECRET);
+    } catch {
+      return res.status(401).json({
+        ok: false,
+        error: "Token temporal inválido o expirado",
+      });
     }
 
-    // Validación del DNI
+    // 🔒 Validar ingreso
     if (String(decoded.ingreso) !== String(ingreso)) {
-      return res.status(403).json({ ok: false, error: "Ingreso inválido" });
+      return res.status(403).json({
+        ok: false,
+        error: "Ingreso inválido",
+      });
     }
 
-    // Llamada al laboratorio
-    const response = await fetch(`${LAB_API}/api/estudios/pdf/${ingreso}?key=${LAB_KEY}`);
+    // 🔥 SINGLE USE TOKEN
+    if (tokenYaUsado(decoded.jti)) {
+      return res.status(401).json({
+        ok: false,
+        error: "Token ya utilizado",
+      });
+    }
+
+    marcarTokenComoUsado(decoded.jti);
+
+    // 👉 Llamada al laboratorio
+    const response = await fetch(
+      `${LAB_API}/api/estudios/pdf/${ingreso}?key=${LAB_KEY}`
+    );
 
     if (!response.ok) {
-      return res.status(500).json({ ok: false, error: "Error obteniendo el PDF" });
+      return res.status(500).json({
+        ok: false,
+        error: "Error obteniendo el PDF",
+      });
     }
 
-    // Copiar headers
     res.setHeader("Content-Type", "application/pdf");
-    res.setHeader("Content-Disposition", `inline; filename=Ingreso-${ingreso}.pdf`);
+    res.setHeader(
+      "Content-Disposition",
+      `inline; filename=Ingreso-${ingreso}.pdf`
+    );
 
-    // Convertir webStream → nodeStream
     const { Readable } = require("stream");
-    const nodeStream = Readable.from(response.body);
-
-    return nodeStream.pipe(res);
-
+    Readable.from(response.body).pipe(res);
   } catch (err) {
     console.error("PDF VPS ERROR:", err);
     res.status(500).json({ error: "Error procesando PDF" });
   }
 };
 
-
 exports.resultados = async (req, res) => {
   try {
     const codigo = req.params.codigo;
+    const user = req.user;
 
-    // Llamada interna al laboratorio (WireGuard)
+    // 🔒 Seguridad por rol
+    if (user.rol === "paciente") {
+      if (String(user.nro_historia) !== String(codigo)) {
+        return res.status(403).json({
+          ok: false,
+          error: "Acceso denegado",
+        });
+      }
+    }
+
+    // (opcional pero claro)
+    if (user.rol !== "paciente" && user.rol !== "admin") {
+      return res.status(403).json({
+        ok: false,
+        error: "Rol no autorizado",
+      });
+    }
+
+    // 🔗 Llamada al laboratorio
     const response = await fetch(
       `${LAB_API}/api/estudios/resultados/${codigo}?key=${LAB_KEY}`
     );
+
+    if (!response.ok) {
+      return res.status(500).json({
+        ok: false,
+        error: "Error consultando resultados del laboratorio",
+      });
+    }
+
     const data = await response.json();
 
-    res.json({
+    return res.json({
+      ok: true,
       origen: "laboratorio",
       codigo,
       resultados: data,
     });
   } catch (err) {
-    console.error("Error al consultar el laboratorio:", err);
-    res.status(500).json({ error: "Error al conectar con el laboratorio" });
+    console.error("Error resultados:", err);
+    res.status(500).json({
+      ok: false,
+      error: "Error interno",
+    });
   }
 };
+
 exports.detalles = async (req, res) => {
   try {
     const ingreso = req.params.ingreso;
-    // Llamada interna al laboratorio (WireGuard)
+    const user = req.user;
+
+    // 🔒 Seguridad por rol
+    if (user.rol === "paciente") {
+      const pertenece = await ingresoPerteneceAPaciente(
+        ingreso,
+        user.nro_historia
+      );
+
+      if (!pertenece) {
+        return res.status(403).json({
+          ok: false,
+          error: "Acceso denegado",
+        });
+      }
+    }
+
+    // explícito (opcional)
+    if (user.rol !== "paciente" && user.rol !== "admin") {
+      return res.status(403).json({
+        ok: false,
+        error: "Rol no autorizado",
+      });
+    }
+
+    // 🔗 Detalle real
     const response = await fetch(
       `${LAB_API}/api/estudios/detalles/${ingreso}?key=${LAB_KEY}`
     );
+
+    if (!response.ok) {
+      return res.status(500).json({
+        ok: false,
+        error: "Error consultando detalles",
+      });
+    }
+
     const data = await response.json();
 
-    res.json(data);
+    res.json({
+      ok: true,
+      ingreso,
+      detalles: data,
+    });
   } catch (err) {
-    console.error("Error al consultar el laboratorio:", err);
-    res.status(500).json({ error: "Error al conectar con el laboratorio" });
+    console.error("DETALLES ERROR:", err);
+    res.status(500).json({
+      ok: false,
+      error: "Error interno",
+    });
   }
 };

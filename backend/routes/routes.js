@@ -9,21 +9,30 @@ const requireAdmin = require("../middlewares/requireAdmin");
 const mailerController = require("../controllers/mailerController");
 const autoRegistroController = require("../controllers/autoregistroController");
 const perfilController = require("../controllers/perfilController");
+const { authLimiter } = require("../middlewares/authLimiter");
 
 // Rutas de perfil
 router.get("/mi-perfil", authMiddleware, perfilController.getMiPerfil);
 router.put("/mi-perfil", authMiddleware, perfilController.updateMiPerfil);
-router.put("/mi-perfil/password", authMiddleware, perfilController.updatePassword);
+router.put(
+  "/mi-perfil/password",
+  authMiddleware,
+  perfilController.updatePassword
+);
 
-router.post("/enviar-token", mailerController.enviarToken);
-router.post("/validar-token", mailerController.validarToken);
+router.post("/enviar-token", authLimiter, mailerController.enviarToken);
+router.post("/validar-token", authLimiter, mailerController.validarToken);
 
-router.post("/registro/iniciar", autoRegistroController.iniciar);
+router.post("/registro/iniciar", authLimiter, autoRegistroController.iniciar);
 router.get("/registro/verificar/:idPublico", autoRegistroController.confirmar);
-router.post("/registro/finalizar", autoRegistroController.finalizar);
+router.post(
+  "/registro/finalizar",
+  authLimiter,
+  autoRegistroController.finalizar
+);
 
-router.post("/login", authController.login);
-router.post("/verificar-dni", authController.verificarDni);
+router.post("/login", authLimiter, authController.login);
+router.post("/verificar-dni", authLimiter, authController.verificarDni);
 router.post("/crear-password", authController.crearPassword);
 
 // Usuarios CRUD
@@ -73,6 +82,6 @@ router.get(
 router.get("/detalles/:ingreso", authMiddleware, estudiosController.detalles);
 router.get("/pdf/:ingreso", estudiosController.pdf);
 router.get("/pdf-url/:ingreso", authMiddleware, estudiosController.pdfUrl);
-router.get("/pacientes/:dni", pacientesController.pacientes);
+router.get("/pacientes/:dni",authMiddleware, pacientesController.pacientes);
 
 module.exports = router;

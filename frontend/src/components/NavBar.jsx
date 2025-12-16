@@ -22,7 +22,6 @@ export default function Navbar() {
     { to: "/inicio", label: "Inicio" },
     { to: "/servicios", label: "Servicios" },
     { to: "/nosotros", label: "Laboratorio" },
-    { to: "/novedades", label: "Novedades" },
     { to: "/pacientes", label: "Pacientes" },
   ]
 
@@ -36,11 +35,6 @@ export default function Navbar() {
       { to: "/nosotros/equipo", label: "Nuestro Equipo" },
       { to: "/nosotros/instalaciones", label: "Instalaciones" },
       { to: "/nosotros/contacto", label: "Contacto" },
-    ],
-    Pacientes: [
-      { to: "/pacientes/portal", label: "Portal de Resultados" },
-      { to: "/pacientes/preparaciones", label: "Preparaciones" },
-      { to: "/pacientes/preguntas", label: "Preguntas Frecuentes" },
     ],
   }
 
@@ -57,27 +51,34 @@ export default function Navbar() {
             const submenu = subMenus[label]
 
             if (submenu) {
-              const isParentActive = submenu.some((s) =>
-                location.pathname.startsWith(s.to)
-              )
+              const isParentActive =
+                location.pathname === to ||
+                submenu.some((s) => location.pathname.startsWith(s.to))
 
               return (
-                <div key={label} className="relative group">
-                  <button
-                    type="button"
-                    aria-haspopup="true"
-                    aria-expanded={isParentActive}
+                <div key={label} className="relative group flex items-center gap-1">
+
+                  {/* LINK PRINCIPAL (NAVEGA) */}
+                  <NavLink
+                    to={to}
                     className={[
                       base,
                       isParentActive ? active : inactive,
                     ].join(" ")}
                   >
                     {label}
-                    <span className="ml-1 text-xs">▾</span>
-                  </button>
+                  </NavLink>
 
+                  {/* FLECHA (HOVER SUBMENU) */}
+                  <span className="text-xs cursor-default select-none">
+                    ▾
+                  </span>
+
+                  {/* SUBMENU */}
                   <div
-                    className="invisible absolute left-0 top-full z-40 flex min-w-[200px] flex-col rounded-md bg-white/95 text-[#333] shadow-lg opacity-0 transition-all duration-150 group-hover:visible group-hover:opacity-100"
+                    className="invisible absolute left-0 top-full z-40 flex min-w-[200px] flex-col
+                       rounded-md bg-white/95 text-[#333] shadow-lg opacity-0
+                       transition-all duration-150 group-hover:visible group-hover:opacity-100"
                     style={{ paddingTop: "0.5rem" }}
                   >
                     {submenu.map(({ to, label }) => (
@@ -116,6 +117,7 @@ export default function Navbar() {
           })}
         </nav>
 
+
         {/* ===== MOBILE TOGGLE ===== */}
         <button
           className="md:hidden text-[#a63a3a] text-2xl"
@@ -141,18 +143,28 @@ export default function Navbar() {
 
                 return (
                   <div key={label}>
-                    <button
-                      type="button"
-                      aria-haspopup="true"
-                      aria-expanded={isOpen}
-                      onClick={() =>
-                        setOpenSub(isOpen ? null : label)
-                      }
-                      className="w-full flex justify-between items-center px-3 py-2 rounded-md text-white"
-                    >
-                      <span>{label}</span>
-                      <span>{isOpen ? "−" : "+"}</span>
-                    </button>
+                    <div className="flex items-center justify-between">
+                      {/* LINK QUE NAVEGA */}
+                      <NavLink
+                        to={to}
+                        onClick={() => {
+                          setOpen(false)
+                          setOpenSub(null)
+                        }}
+                        className="px-3 py-2 rounded-md text-white flex-1"
+                      >
+                        {label}
+                      </NavLink>
+
+                      {/* BOTÓN SUBMENU */}
+                      <button
+                        type="button"
+                        onClick={() => setOpenSub(isOpen ? null : label)}
+                        className="px-3 py-2 text-white"
+                      >
+                        {isOpen ? "−" : "+"}
+                      </button>
+                    </div>
 
                     {isOpen && (
                       <div className="ml-4 mt-1 flex flex-col gap-1">
@@ -174,6 +186,7 @@ export default function Navbar() {
                   </div>
                 )
               }
+
 
               return (
                 <NavLink

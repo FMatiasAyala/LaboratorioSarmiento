@@ -9,14 +9,15 @@ module.exports = function (req, res, next) {
 
   try {
     const token = auth.split(" ")[1];
-
-    // 🔥 ACA ESTABA EL ERROR
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    if (!decoded.id || !decoded.dni) {
+      return res.status(401).json({ ok: false, error: "Token inválido" });
+    }
 
     req.user = decoded;
     next();
   } catch (err) {
-    console.error("Error verificando token:", err.message);
     return res.status(401).json({ ok: false, error: "Token inválido" });
   }
 };

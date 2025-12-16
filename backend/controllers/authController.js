@@ -1,10 +1,14 @@
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const pool = require("../db");
-
+const {
+  checkAttempts,
+  registerFail,
+  clearAttempts,
+} = require("../utils/loginAttempts");
 const LAB_API = process.env.LAB_API;
 const LAB_KEY = process.env.LAB_KEY;
-const JWT_SECRET = process.env.JWT_SECRET || "SECRET_FALLBACK";
+const JWT_SECRET = process.env.JWT_SECRET;
 
 // =====================================================
 // 1) Verificar DNI antes del login
@@ -82,7 +86,7 @@ exports.crearPassword = async (req, res) => {
         pac.apellido.trim(),
         fechaNac,
         pac.codigo,
-        "paciente",      // 👈 siempre paciente
+        "paciente", // 👈 siempre paciente
         passHash,
       ]
     );
@@ -114,50 +118,71 @@ exports.crearPassword = async (req, res) => {
 // =====================================================
 // 3) Login con usuario ya registrado en MySQL
 // =====================================================
+
 exports.login = async (req, res) => {
   const { dni, password } = req.body;
+  const key = `${dni}:${req.ip}`;
 
   try {
+    // 🔒 Bloqueo por intentos
+    if (checkAttempts(key)) {
+      return res.status(429).json({
+        ok: false,
+        error: "Demasiados intentos. Intente más tarde.",
+      });
+    }
+
     const [rows] = await pool.query(
       "SELECT * FROM usuarios WHERE dni = ? LIMIT 1",
       [dni]
     );
 
+    // ❗ mensaje único
     if (rows.length === 0) {
-      return res.status(404).json({ ok: false, error: "El usuario no existe" });
+      registerFail(key);
+      return res.status(401).json({
+        ok: false,
+        error: "Credenciales inválidas",
+      });
     }
 
     const user = rows[0];
 
     const ok = await bcrypt.compare(password, user.password_hash);
     if (!ok) {
-      return res
-        .status(400)
-        .json({ ok: false, error: "Contraseña incorrecta" });
+      registerFail(key);
+      return res.status(401).json({
+        ok: false,
+        error: "Credenciales inválidas",
+      });
     }
 
-    // Aseguramos rol siempre
+    // ✅ login OK → limpiar intentos
+    clearAttempts(key);
+
     const rolFinal = user.rol || "paciente";
 
     const token = jwt.sign(
       { id: user.id, dni: user.dni, rol: rolFinal },
-      JWT_SECRET,
+      process.env.JWT_SECRET,
       { expiresIn: "7d" }
     );
 
-    const cleanUser = {
-      id: user.id,
-      dni: user.dni,
-      nombre: user.nombre,
-      apellido: user.apellido,
-      fecha_nac: user.fecha_nac,
-      nro_historia: user.nro_historia,
-      email: user.email,
-      telefono: user.telefono,
-      rol: rolFinal,
-    };
-
-    res.json({ ok: true, user: cleanUser, token });
+    res.json({
+      ok: true,
+      user: {
+        id: user.id,
+        dni: user.dni,
+        nombre: user.nombre,
+        apellido: user.apellido,
+        fecha_nac: user.fecha_nac,
+        nro_historia: user.nro_historia,
+        email: user.email,
+        telefono: user.telefono,
+        rol: rolFinal,
+      },
+      token,
+    });
   } catch (err) {
     console.error("ERROR login:", err);
     res.status(500).json({ ok: false, error: "Error interno" });

@@ -15,7 +15,7 @@ export default function BotonWhatsapp() {
 
       {/* Burbuja flotante al hover */}
       <span className="absolute right-16 bottom-3 opacity-0 group-hover:opacity-100 bg-gray-800 text-white text-sm px-3 py-1.5 rounded-full shadow-md whitespace-nowrap transition-all duration-300 transform translate-y-1/2 group-hover:translate-y-0">
-        Solicita tu turno!
+        Comunicate con nosotros!
       </span>
     </div>
   )

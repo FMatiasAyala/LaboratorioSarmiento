@@ -1,6 +1,6 @@
 import React from "react"
 import { Link } from "react-router-dom"
-import { FaFileMedical, FaClipboardList, FaClock } from "react-icons/fa"
+import { FaFileMedical, FaUsers, FaClock } from "react-icons/fa"
 
 const PORTAL_URL = import.meta.env.VITE_PORTAL_URL
 
@@ -13,9 +13,9 @@ function AccesosRapidos() {
       external: true,
     },
     {
-      title: "Preparaciones",
-      to: "/pacientes/preparaciones",
-      icon: <FaClipboardList size={36} />,
+      title: "Nuestro equipo",
+      icon: <FaUsers size={36} />,
+      to: "/nosotros/equipo",
     },
     {
       title: "Horarios y Contacto",
