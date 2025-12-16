@@ -3,7 +3,8 @@ const bcrypt = require("bcrypt");
 const PDFDocument = require("pdfkit");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
-
+const path = require("path");
+const logoPath = path.join(__dirname, "../public/logo2.jpg");
 exports.buscarPorDniAvanzado = async (req, res) => {
   const dni = req.params.dni;
 
@@ -238,36 +239,47 @@ exports.credencialesPdfUrl = async (req, res) => {
 exports.credencialesPdf = async (req, res) => {
   try {
     const { id } = req.params;
-    const { temp } = req.query;
+    const { temp, password } = req.query;
 
-    if (!temp) {
-      return res.status(401).json({ error: "Token temporal requerido" });
+    if (!temp || !password) {
+      return res.status(401).json({
+        error: "Token o contraseña faltante",
+      });
     }
 
+    // 🔐 Verificar token temporal
     let decoded;
     try {
       decoded = jwt.verify(temp, process.env.JWT_TEMP_SECRET);
     } catch {
-      return res.status(401).json({ error: "Token inválido o expirado" });
+      return res.status(401).json({
+        error: "Token inválido o expirado",
+      });
     }
 
     if (String(decoded.userId) !== String(id)) {
-      return res.status(403).json({ error: "Token inválido" });
+      return res.status(403).json({
+        error: "Token inválido",
+      });
     }
 
     // 🔍 Buscar usuario
     const [rows] = await pool.query(
-      "SELECT dni, nombre, apellido, nro_historia, email FROM usuarios WHERE id = ?",
+      "SELECT dni FROM usuarios WHERE id = ? LIMIT 1",
       [id]
     );
 
     if (rows.length === 0) {
-      return res.status(404).json({ error: "Usuario no encontrado" });
+      return res.status(404).json({
+        error: "Usuario no encontrado",
+      });
     }
 
     const u = rows[0];
 
-    // 📄 PDF
+    // ======================
+    // 📄 GENERAR PDF
+    // ======================
     const doc = new PDFDocument({ margin: 50 });
 
     res.setHeader("Content-Type", "application/pdf");
@@ -278,22 +290,79 @@ exports.credencialesPdf = async (req, res) => {
 
     doc.pipe(res);
 
-    doc.fontSize(20).text("Credenciales de Acceso", { align: "center" });
+    // 🖼 LOGO
+    if (require("fs").existsSync(logoPath)) {
+      doc.image(logoPath, {
+        width: 120,
+        align: "center",
+      });
+    }
+
     doc.moveDown(2);
 
-    doc.fontSize(12);
-    doc.text(`Nombre: ${u.nombre} ${u.apellido}`);
-    doc.text(`DNI: ${u.dni}`);
-    doc.text(`N° Historia: ${u.nro_historia}`);
-    doc.text(`Email: ${u.email}`);
-    doc.moveDown();
+    // 🏷 TÍTULO
+    doc.font("Helvetica-Bold").fontSize(22).text("Credenciales de Acceso", {
+      align: "center",
+    });
 
-    doc.text("Portal de pacientes:");
-    doc.text(process.env.PORTAL_URL, { link: process.env.PORTAL_URL });
+    doc.moveDown(2);
+
+    // 👤 USUARIO
+    doc.font("Helvetica-Bold").fontSize(14).text("Usuario:");
+    doc.font("Helvetica").fontSize(18).text(u.dni);
+
+    doc.moveDown(1.5);
+
+    // 🔑 CONTRASEÑA
+    doc.font("Helvetica-Bold").fontSize(14).text("Contraseña:");
+    doc.font("Helvetica").fontSize(18).text(password);
+
+    doc.moveDown(2);
+
+    // 🌐 PORTAL
+    doc.font("Helvetica-Bold").fontSize(14).text("Portal de pacientes:");
+    doc
+      .font("Helvetica")
+      .fontSize(14)
+      .fillColor("blue")
+      .text(process.env.PORTAL_URL, {
+        link: process.env.PORTAL_URL,
+        underline: true,
+      });
+
+    doc.fillColor("black");
+    doc.moveDown(2);
+
+    // 📘 EXPLICACIÓN SIMPLE
+    doc.font("Helvetica").fontSize(13);
+
+    doc.text("¿Cómo ver sus resultados?", { underline: true });
+    doc.moveDown(1);
+
+    doc.text("1) Ingrese al portal desde su celular o computadora.");
+    doc.text("2) Escriba su USUARIO y CONTRASEÑA.");
+    doc.text("3) Presione el botón 'Ingresar'.");
+    doc.text("4) Allí podrá ver y descargar sus resultados.");
+
+    doc.moveDown(1.5);
+
+    doc
+      .font("Helvetica-Bold")
+      .fontSize(12)
+      .text("IMPORTANTE:", { underline: true });
+
+    doc
+      .font("Helvetica")
+      .fontSize(12)
+      .text(
+        "Guarde este papel. No comparta su contraseña.\nAnte cualquier duda, comuníquese con el laboratorio."
+      );
 
     doc.end();
   } catch (err) {
     console.error("Error PDF credenciales:", err);
-    res.status(500).json({ error: "Error generando PDF" });
+    res.status(500).json({
+      error: "Error generando PDF",
+    });
   }
 };
