@@ -216,13 +216,7 @@ export default function UsuarioForm({ open, onClose, usuario, onSaved }) {
         : await UsuariosAPI.create(form);
 
     if (data.ok && !isEdit) {
-      const resp = await fetch(
-        `${API_URL}/api/usuarios/${data.id}/credenciales-pdf`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-
+      const resp = await UsuariosAPI.credencialesPdf(data.usuario.id);
       if (resp.ok) {
         const blob = await resp.blob();
         const url = URL.createObjectURL(blob);

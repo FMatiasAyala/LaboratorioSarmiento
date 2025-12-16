@@ -73,7 +73,7 @@ router.delete(
   usuarioController.eliminarUsuario
 );
 
-router.post("/usuarios/:id/credenciales", authMiddleware, requireAdmin, usuarioController.generarCredencialesPDF);
+router.post("/usuarios/:id/credenciales-pdf", authMiddleware, requireAdmin, usuarioController.generarCredencialesPDF);
 
 router.get(
   "/resultados/:codigo",

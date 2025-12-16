@@ -54,4 +54,14 @@ export const UsuariosAPI = {
     });
     return res.json();
   },
+  async credencialesPdf(id) {
+    const res = await fetch(`${API_URL}/api/usuarios/${id}/credenciales-pdf`, {
+      method: "GET",
+      headers: getHeaders(),
+    });
+    return res.blob();
+  }
+
 };
+
+
