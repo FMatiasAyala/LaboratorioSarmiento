@@ -21,6 +21,18 @@ exports.pdfUrl = async (req, res) => {
     const ingreso = req.params.ingreso;
     const user = req.user;
 
+    // Validar existencia del PDF ANTES
+    const test = await fetch(
+      `${LAB_API}/api/estudios/pdf/${ingreso}?key=${LAB_KEY}`
+    );
+
+    if (!test.ok) {
+      return res.status(404).json({
+        ok: false,
+        error: "El PDF no se encuentra disponible",
+      });
+    }
+
     const tempToken = jwt.sign(
       {
         dni: user.dni,

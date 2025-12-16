@@ -91,10 +91,9 @@ export default function Resultados() {
         });
       const data = await resp.json();
 
-      console.log("DETALLE:", data);
 
       // 🔥 CORRECCIÓN: el detalle viene dentro de un array
-      setDetalle(data.resultados?.detalles?.[0] || null);
+      setDetalle(data.detalles?.resultados?.detalles?.[0] || null);
 
     } catch (err) {
       setDetalle({ error: err.message });
@@ -103,9 +102,6 @@ export default function Resultados() {
     }
   };
   const descargarPDF = async (ingreso) => {
-    const token = localStorage.token;
-
-    // abrir modal + poner spinner
     setModalPdf(true);
     setModalPdfLoading(true);
     setModalPdfError("");
@@ -116,30 +112,30 @@ export default function Resultados() {
       });
 
       const data = await resp.json();
-
-      // detener spinner
       setModalPdfLoading(false);
 
       if (!resp.ok || !data.ok) {
-        setModalPdfError(data.error || "No se encontró el PDF del estudio.");
+        setModalPdfError(
+          data.error || "El resultado aún no está disponible."
+        );
         return;
       }
 
-      // PDF listo → cerrar modal y abrir pestaña
+      // ✅ PDF válido
       setModalPdf(false);
-      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
 
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
       if (isIOS) {
-        window.location.href = data.url; // 👈 iOS necesita esto
+        window.location.href = data.url;
       } else {
         window.open(data.url, "_blank", "noopener,noreferrer");
       }
-
     } catch (err) {
       setModalPdfLoading(false);
-      setModalPdfError("Error al comunicarse con el servidor.");
+      setModalPdfError("No se pudo descargar el estudio.");
     }
   };
+
 
 
 
