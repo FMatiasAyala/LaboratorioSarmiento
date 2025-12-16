@@ -215,15 +215,6 @@ export default function UsuarioForm({ open, onClose, usuario, onSaved }) {
         ? await UsuariosAPI.update(editId ?? usuario.id, form)
         : await UsuariosAPI.create(form);
 
-    if (data.ok && !isEdit) {
-      const resp = await UsuariosAPI.credencialesPdf(data.usuario.id);
-      if (resp.ok) {
-        const blob = await resp.blob();
-        const url = URL.createObjectURL(blob);
-        window.open(url, "_blank");
-      }
-    }
-
     if (data.ok) {
       toast.success(isEdit ? "Usuario actualizado" : "Usuario creado");
       onSaved();
@@ -233,6 +224,13 @@ export default function UsuarioForm({ open, onClose, usuario, onSaved }) {
         type: "error",
         text: data.error || "Error al guardar.",
       });
+    }
+    if (data.ok && !isEdit) {
+      const resp = await UsuariosAPI.credencialesPdf(data.usuario.id);
+
+      if (resp.ok && resp.url) {
+        window.open(resp.url, "_blank");
+      }
     }
   };
 

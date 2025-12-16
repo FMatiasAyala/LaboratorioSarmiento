@@ -1,5 +1,8 @@
 const pool = require("../db");
 const bcrypt = require("bcrypt");
+const PDFDocument = require("pdfkit");
+const jwt = require("jsonwebtoken");
+const crypto = require("crypto");
 
 exports.buscarPorDniAvanzado = async (req, res) => {
   const dni = req.params.dni;
@@ -206,33 +209,89 @@ exports.eliminarUsuario = async (req, res) => {
   }
 };
 
-exports.generarCredencialesPDF = async (req, res) => {
+exports.credencialesPdfUrl = async (req, res) => {
   try {
     const { id } = req.params;
 
-    // 1. Buscar usuario
+    // 🔒 Solo admin puede generar credenciales
+    if (req.user.rol !== "admin") {
+      return res.status(403).json({ ok: false, error: "No autorizado" });
+    }
+
+    // Token temporal (1 minuto)
+    const tempToken = jwt.sign(
+      { userId: id, jti: crypto.randomUUID() },
+      process.env.JWT_TEMP_SECRET,
+      { expiresIn: "1m" }
+    );
+
+    res.json({
+      ok: true,
+      url: `${process.env.PUBLIC_BACKEND_URL}/api/usuarios/${id}/credenciales-pdf?temp=${tempToken}`,
+    });
+  } catch (err) {
+    console.error("Error credencialesPdfUrl:", err);
+    res.status(500).json({ ok: false, error: "Error generando credenciales" });
+  }
+};
+
+exports.credencialesPdf = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { temp } = req.query;
+
+    if (!temp) {
+      return res.status(401).json({ error: "Token temporal requerido" });
+    }
+
+    let decoded;
+    try {
+      decoded = jwt.verify(temp, process.env.JWT_TEMP_SECRET);
+    } catch {
+      return res.status(401).json({ error: "Token inválido o expirado" });
+    }
+
+    if (String(decoded.userId) !== String(id)) {
+      return res.status(403).json({ error: "Token inválido" });
+    }
+
+    // 🔍 Buscar usuario
     const [rows] = await pool.query(
-      "SELECT dni, nombre, apellido, email, nro_historia FROM usuarios WHERE id = ?",
+      "SELECT dni, nombre, apellido, nro_historia, email FROM usuarios WHERE id = ?",
       [id]
     );
 
-    if (!rows.length) {
+    if (rows.length === 0) {
       return res.status(404).json({ error: "Usuario no encontrado" });
     }
 
-    const usuario = rows[0];
+    const u = rows[0];
 
-    // 2. Generar PDF (ej: pdfkit / puppeteer)
-    const pdfBuffer = await generarPdfCredenciales(usuario);
+    // 📄 PDF
+    const doc = new PDFDocument({ margin: 50 });
 
-    // 3. Enviar PDF
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader(
       "Content-Disposition",
-      `inline; filename=Credenciales-${usuario.dni}.pdf`
+      `inline; filename=credenciales-${u.dni}.pdf`
     );
 
-    res.end(pdfBuffer);
+    doc.pipe(res);
+
+    doc.fontSize(20).text("Credenciales de Acceso", { align: "center" });
+    doc.moveDown(2);
+
+    doc.fontSize(12);
+    doc.text(`Nombre: ${u.nombre} ${u.apellido}`);
+    doc.text(`DNI: ${u.dni}`);
+    doc.text(`N° Historia: ${u.nro_historia}`);
+    doc.text(`Email: ${u.email}`);
+    doc.moveDown();
+
+    doc.text("Portal de pacientes:");
+    doc.text(process.env.PORTAL_URL, { link: process.env.PORTAL_URL });
+
+    doc.end();
   } catch (err) {
     console.error("Error PDF credenciales:", err);
     res.status(500).json({ error: "Error generando PDF" });
