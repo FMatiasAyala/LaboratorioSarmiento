@@ -68,14 +68,13 @@ exports.pdf = async (req, res) => {
     let decoded;
     try {
       decoded = jwt.verify(temp, process.env.JWT_TEMP_SECRET);
-    } catch {
+    } catch (err) {
       return res.status(401).json({
         ok: false,
         error: "Token temporal inválido o expirado",
       });
     }
 
-    // 🔒 Validar ingreso
     if (String(decoded.ingreso) !== String(ingreso)) {
       return res.status(403).json({
         ok: false,
@@ -83,25 +82,14 @@ exports.pdf = async (req, res) => {
       });
     }
 
-    // 🔥 SINGLE USE TOKEN
-    if (tokenYaUsado(decoded.jti)) {
-      return res.status(401).json({
-        ok: false,
-        error: "Token ya utilizado",
-      });
-    }
-
-    marcarTokenComoUsado(decoded.jti);
-
-    // 👉 Llamada al laboratorio
     const response = await fetch(
       `${LAB_API}/api/estudios/pdf/${ingreso}?key=${LAB_KEY}`
     );
 
     if (!response.ok) {
-      return res.status(500).json({
+      return res.status(404).json({
         ok: false,
-        error: "Error obteniendo el PDF",
+        error: "El PDF no está disponible",
       });
     }
 
@@ -113,11 +101,16 @@ exports.pdf = async (req, res) => {
 
     const { Readable } = require("stream");
     Readable.from(response.body).pipe(res);
+
   } catch (err) {
     console.error("PDF VPS ERROR:", err);
-    res.status(500).json({ error: "Error procesando PDF" });
+    res.status(500).json({
+      ok: false,
+      error: "Error procesando PDF",
+    });
   }
 };
+
 
 exports.resultados = async (req, res) => {
   try {
