@@ -51,7 +51,7 @@ const slides = [
     ctaLabel: "Conocé nuestro equipo",
     ctaTo: "/nosotros/equipo",
     ctaLabelSecondary: "Contacto",
-    ctaToSecondary: "/nosotros/contacto",
+    ctaToSecondary: "/contacto",
     image: "/banners/banner5.jpg",
   },
 ];

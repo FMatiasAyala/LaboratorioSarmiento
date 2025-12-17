@@ -4,6 +4,7 @@ const PDFDocument = require("pdfkit");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
 const path = require("path");
+const fs = require("fs");
 const logoPath = path.join(__dirname, "../public/logo2.jpg");
 exports.buscarPorDniAvanzado = async (req, res) => {
   const dni = req.params.dni;

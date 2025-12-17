@@ -25,7 +25,7 @@ export default function Contacto() {
               <FaPhoneAlt className="text-[#A63A3A] text-xl mt-1" />
               <p className="text-gray-700">
                 <strong>WhatsApp</strong><br />
-                362 453-2252
+                (+54) 9 362 453-2252<br />
               </p>
             </div>
 

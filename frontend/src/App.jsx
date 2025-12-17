@@ -42,8 +42,7 @@ export default function App() {
           <Route path="nosotros" element={<Nosotros />} />
           <Route path="nosotros/equipo" element={<Equipo />} />
           <Route path="nosotros/instalaciones" element={<Instalaciones />} />
-          <Route path="nosotros/contacto" element={<Contacto />} />
-          <Route path="nosotros/contacto" element={<Contacto />} />
+          <Route path="contacto" element={<Contacto />} />
           <Route path="pacientes" element={<Pacientes />} />
 
         </Route>

@@ -19,7 +19,7 @@ function AccesosRapidos() {
     },
     {
       title: "Horarios y Contacto",
-      to: "/nosotros/contacto",
+      to: "/contacto",
       icon: <FaClock size={36} />,
     },
   ]

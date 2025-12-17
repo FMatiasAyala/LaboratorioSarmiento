@@ -56,7 +56,7 @@ export default function Ubicacion() {
                 rel="noopener noreferrer"
                 className="hover:text-[#A63A3A] transition"
               >
-                362 453-2252 <br />
+                (+54) 9 362 453-2252<br />
                 <span className="text-sm text-gray-500">
                   (consultas únicamente por WhatsApp)
                 </span>

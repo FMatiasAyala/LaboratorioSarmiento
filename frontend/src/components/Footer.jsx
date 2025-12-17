@@ -74,7 +74,7 @@ export default function Footer() {
               rel="noopener noreferrer"
               className="hover:text-white transition"
             >
-              362 453-2252
+              (+54) 9 362 453-2252<br />
             </a>
           </div>
 

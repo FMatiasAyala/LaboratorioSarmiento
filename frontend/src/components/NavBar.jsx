@@ -23,6 +23,7 @@ export default function Navbar() {
     { to: "/servicios", label: "Servicios" },
     { to: "/nosotros", label: "Laboratorio" },
     { to: "/pacientes", label: "Pacientes" },
+    { to: "/contacto", label: "Contacto" },
   ]
 
   // Submenús
@@ -34,7 +35,6 @@ export default function Navbar() {
     Laboratorio: [
       { to: "/nosotros/equipo", label: "Nuestro Equipo" },
       { to: "/nosotros/instalaciones", label: "Instalaciones" },
-      { to: "/nosotros/contacto", label: "Contacto" },
     ],
   }
 
