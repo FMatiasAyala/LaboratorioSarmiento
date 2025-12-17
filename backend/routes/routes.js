@@ -75,7 +75,8 @@ router.delete(
 
 router.get("/usuarios/:id/credenciales-url", authMiddleware, requireAdmin, usuarioController.credencialesPdfUrl);
 
-router.get("/usuarios/:id/credenciales-pdf", usuarioController.credencialesPdf);
+router.post("/usuarios/:id/credenciales-pdf",  authMiddleware,
+  requireAdmin, usuarioController.credencialesPdf);
 
 router.get(
   "/resultados/:codigo",

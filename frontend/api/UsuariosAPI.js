@@ -55,11 +55,20 @@ export const UsuariosAPI = {
     return res.json();
   },
 
-  async credencialesPdf(id) {
-    return fetch(`${API_URL}/api/usuarios/${id}/credenciales-url`, {
+  async credencialesPdf(id, pass) {
+    const res = await fetch(`${API_URL}/api/usuarios/${id}/credenciales-pdf`, {
+      method: "POST",
       headers: {
+        "Content-Type": "application/json",
         Authorization: `Bearer ${localStorage.token}`,
       },
-    }).then((r) => r.json());
+      body: JSON.stringify({ password: pass }),
+    });
+
+    if (!res.ok) {
+      throw new Error("Error generando PDF");
+    }
+
+    return res.blob(); 
   },
 };

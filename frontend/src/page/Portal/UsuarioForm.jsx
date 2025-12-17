@@ -287,11 +287,14 @@ export default function UsuarioForm({ open, onClose, usuario, onSaved }) {
           }}
           onConfirm={async () => {
             try {
-              const resp = await UsuariosAPI.credencialesPdf(lastUserId);
+              const blob = await UsuariosAPI.credencialesPdf(
+                lastUserId,
+                form.password
+              );
 
-              if (resp.ok && resp.url) {
-                window.open(resp.url, "_blank");
-              }
+              const url = URL.createObjectURL(blob);
+              window.open(url, "_blank");
+
             } catch (err) {
               toast.error("Error generando credenciales");
             } finally {
@@ -301,6 +304,7 @@ export default function UsuarioForm({ open, onClose, usuario, onSaved }) {
             }
           }}
         />
+
       )}
 
       <form onSubmit={submit} className="space-y-3">

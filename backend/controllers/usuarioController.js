@@ -239,47 +239,28 @@ exports.credencialesPdfUrl = async (req, res) => {
 exports.credencialesPdf = async (req, res) => {
   try {
     const { id } = req.params;
-    const { temp } = req.query;
+    const { password } = req.body;
 
-    if (!temp) {
-      return res.status(401).json({
-        error: "Token temporal requerido",
-      });
+    // 🔒 Solo admin
+    if (req.user.rol !== "admin") {
+      return res.status(403).json({ error: "No autorizado" });
     }
 
-    // 🔐 Verificar token temporal
-    let decoded;
-    try {
-      decoded = jwt.verify(temp, process.env.JWT_TEMP_SECRET);
-    } catch {
-      return res.status(401).json({
-        error: "Token inválido o expirado",
-      });
+    if (!password) {
+      return res.status(400).json({ error: "Contraseña requerida" });
     }
 
-    if (String(decoded.userId) !== String(id)) {
-      return res.status(403).json({
-        error: "Token inválido",
-      });
-    }
-
-    // 🔍 Buscar usuario
     const [rows] = await pool.query(
-      "SELECT dni FROM usuarios WHERE id = ? LIMIT 1",
+      "SELECT dni, nombre, apellido, nro_historia FROM usuarios WHERE id = ?",
       [id]
     );
 
     if (rows.length === 0) {
-      return res.status(404).json({
-        error: "Usuario no encontrado",
-      });
+      return res.status(404).json({ error: "Usuario no encontrado" });
     }
 
     const u = rows[0];
 
-    // ======================
-    // 📄 GENERAR PDF
-    // ======================
     const doc = new PDFDocument({ margin: 50 });
 
     res.setHeader("Content-Type", "application/pdf");
@@ -290,79 +271,37 @@ exports.credencialesPdf = async (req, res) => {
 
     doc.pipe(res);
 
-    // 🖼 LOGO
-    if (require("fs").existsSync(logoPath)) {
-      doc.image(logoPath, {
-        width: 120,
-        align: "center",
-      });
+    // 🖼️ Logo
+    if (fs.existsSync(logoPath)) {
+      doc.image(logoPath, { width: 120, align: "center" });
+      doc.moveDown(1.5);
     }
 
+    doc.fontSize(18).text("Credenciales de Acceso", { align: "center" });
     doc.moveDown(2);
 
-    // 🏷 TÍTULO
-    doc.font("Helvetica-Bold").fontSize(22).text("Credenciales de Acceso", {
-      align: "center",
-    });
+    doc.fontSize(12);
+    doc.text(`Nombre: ${u.nombre} ${u.apellido}`);
+    doc.text(`Usuario (DNI): ${u.dni}`);
+    doc.text(`Contraseña: ${password}`);
+    doc.moveDown();
 
-    doc.moveDown(2);
-
-    // 👤 USUARIO
-    doc.font("Helvetica-Bold").fontSize(14).text("Usuario:");
-    doc.font("Helvetica").fontSize(18).text(u.dni);
-
-    doc.moveDown(1.5);
-
-    // 🔑 CONTRASEÑA
-    doc.font("Helvetica-Bold").fontSize(14).text("Contraseña:");
-    doc.font("Helvetica").fontSize(18).text(password);
-
-    doc.moveDown(2);
-
-    // 🌐 PORTAL
-    doc.font("Helvetica-Bold").fontSize(14).text("Portal de pacientes:");
+    doc.text("Portal de pacientes:");
     doc
-      .font("Helvetica")
-      .fontSize(14)
       .fillColor("blue")
-      .text(process.env.PORTAL_URL, {
-        link: process.env.PORTAL_URL,
-        underline: true,
-      });
-
+      .text(process.env.PORTAL_URL, { link: process.env.PORTAL_URL });
     doc.fillColor("black");
+
     doc.moveDown(2);
-
-    // 📘 EXPLICACIÓN SIMPLE
-    doc.font("Helvetica").fontSize(13);
-
-    doc.text("¿Cómo ver sus resultados?", { underline: true });
-    doc.moveDown(1);
-
-    doc.text("1) Ingrese al portal desde su celular o computadora.");
-    doc.text("2) Escriba su USUARIO y presione CONTINUAR.");
-    doc.text("3) Escriba su CONTRASEÑA y presione INGRESAR.");
-    doc.text("4) Allí podrá ver y descargar sus resultados.");
-
-    doc.moveDown(1.5);
-
     doc
-      .font("Helvetica-Bold")
-      .fontSize(12)
-      .text("IMPORTANTE:", { underline: true });
-
-    doc
-      .font("Helvetica")
-      .fontSize(12)
+      .fontSize(10)
       .text(
-        "Guarde este papel. No comparta su contraseña.\nAnte cualquier duda, comuníquese con el laboratorio. Nuestro numero de WhatsApp 362 453-2252"
+        "Por su seguridad, se recomienda cambiar la contraseña luego del primer ingreso."
       );
 
     doc.end();
   } catch (err) {
     console.error("Error PDF credenciales:", err);
-    res.status(500).json({
-      error: "Error generando PDF",
-    });
+    res.status(500).json({ error: "Error generando PDF" });
   }
 };
