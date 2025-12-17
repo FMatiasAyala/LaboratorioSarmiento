@@ -1,6 +1,6 @@
 import * as Dialog from "@radix-ui/react-dialog";
 
-export default function ModalConfirm({ open, onClose, title, message, onConfirm }) {
+export default function ModalConfirm({ open, onClose, title, message, btnMessage, onConfirm }) {
   return (
     <Dialog.Root open={open} onOpenChange={onClose}>
       <Dialog.Portal>
@@ -46,7 +46,7 @@ export default function ModalConfirm({ open, onClose, title, message, onConfirm 
                 }}
                 className="px-4 py-2 rounded bg-red-600 text-white hover:bg-red-700 transition"
               >
-                Eliminar
+                {btnMessage}
               </button>
             </div>
           </Dialog.Content>

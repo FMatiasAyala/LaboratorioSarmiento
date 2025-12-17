@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import ModalUsuario from "../../components/Portal/ModalUsuario";
 import { UsuariosAPI } from "../../../api/UsuariosAPI";
 import toast from "react-hot-toast";
+import ModalConfirm from "../../components/Portal/ModalConfirm";
+
 
 export default function UsuarioForm({ open, onClose, usuario, onSaved }) {
   const isEdit = !!usuario?.id;
@@ -24,6 +26,9 @@ export default function UsuarioForm({ open, onClose, usuario, onSaved }) {
   const [loadingDni, setLoadingDni] = useState(false);
   const [dniStatus, setDniStatus] = useState(null);
   const [allowPassword, setAllowPassword] = useState(false);
+  const [showCredencialesConfirm, setShowCredencialesConfirm] = useState(false);
+  const [lastUserId, setLastUserId] = useState(null);
+
 
   // Limpia mensaje al cerrar modal
   useEffect(() => {
@@ -217,21 +222,21 @@ export default function UsuarioForm({ open, onClose, usuario, onSaved }) {
 
     if (data.ok) {
       toast.success(isEdit ? "Usuario actualizado" : "Usuario creado");
-      onSaved();
-      onClose();
-    } else {
+
+      // guardamos el ID para el PDF
+      const userId = data.user?.id ?? editId ?? usuario?.id;
+      setLastUserId(userId);
+
+      // mostramos confirmación
+      setShowCredencialesConfirm(true);
+    }
+    else {
       setMsg({
         type: "error",
         text: data.error || "Error al guardar.",
       });
     }
-    if (data.ok && !isEdit) {
-      const resp = await UsuariosAPI.credencialesPdf(data.usuario.id);
-
-      if (resp.ok && resp.url) {
-        window.open(resp.url, "_blank");
-      }
-    }
+    console.log(data);
   };
 
   // ======================================================
@@ -269,6 +274,34 @@ export default function UsuarioForm({ open, onClose, usuario, onSaved }) {
         </div>
       )}
 
+      {showCredencialesConfirm && (
+        <ModalConfirm
+          open={true}
+          title="Imprimir credenciales"
+          message="¿Desea generar e imprimir las credenciales de acceso para el paciente?"
+          btnMessage="Generar PDF"
+          onClose={() => {
+            setShowCredencialesConfirm(false);
+            onSaved();
+            onClose();
+          }}
+          onConfirm={async () => {
+            try {
+              const resp = await UsuariosAPI.credencialesPdf(lastUserId);
+
+              if (resp.ok && resp.url) {
+                window.open(resp.url, "_blank");
+              }
+            } catch (err) {
+              toast.error("Error generando credenciales");
+            } finally {
+              setShowCredencialesConfirm(false);
+              onSaved();
+              onClose();
+            }
+          }}
+        />
+      )}
 
       <form onSubmit={submit} className="space-y-3">
 

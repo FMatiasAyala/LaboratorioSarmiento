@@ -103,6 +103,7 @@ export default function UsuariosList() {
           onClose={() => setDeleteId(null)}
           title="Eliminar usuario"
           message="¿Estás seguro que querés eliminar este usuario?"
+          btnMessage="Eliminar"
           onConfirm={handleDelete}
         />
       )}

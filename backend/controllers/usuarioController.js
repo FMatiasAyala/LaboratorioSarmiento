@@ -239,11 +239,11 @@ exports.credencialesPdfUrl = async (req, res) => {
 exports.credencialesPdf = async (req, res) => {
   try {
     const { id } = req.params;
-    const { temp, password } = req.query;
+    const { temp } = req.query;
 
-    if (!temp || !password) {
+    if (!temp) {
       return res.status(401).json({
-        error: "Token o contraseña faltante",
+        error: "Token temporal requerido",
       });
     }
 
@@ -340,8 +340,8 @@ exports.credencialesPdf = async (req, res) => {
     doc.moveDown(1);
 
     doc.text("1) Ingrese al portal desde su celular o computadora.");
-    doc.text("2) Escriba su USUARIO y CONTRASEÑA.");
-    doc.text("3) Presione el botón 'Ingresar'.");
+    doc.text("2) Escriba su USUARIO y presione CONTINUAR.");
+    doc.text("3) Escriba su CONTRASEÑA y presione INGRESAR.");
     doc.text("4) Allí podrá ver y descargar sus resultados.");
 
     doc.moveDown(1.5);
@@ -355,7 +355,7 @@ exports.credencialesPdf = async (req, res) => {
       .font("Helvetica")
       .fontSize(12)
       .text(
-        "Guarde este papel. No comparta su contraseña.\nAnte cualquier duda, comuníquese con el laboratorio."
+        "Guarde este papel. No comparta su contraseña.\nAnte cualquier duda, comuníquese con el laboratorio. Nuestro numero de WhatsApp 362 453-2252"
       );
 
     doc.end();
